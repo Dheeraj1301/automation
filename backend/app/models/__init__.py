@@ -8,6 +8,8 @@ from app.models.category import Category
 from app.models.product import Product
 from app.models.product_variant import ProductVariant
 from app.models.product_image import ProductImage
+from app.models.landing_page import LandingPage
+from app.models.lead import Lead
 
 __all__ = [
     "User",
@@ -20,4 +22,6 @@ __all__ = [
     "Product",
     "ProductVariant",
     "ProductImage",
+    "LandingPage",
+    "Lead",
 ]

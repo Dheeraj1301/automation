@@ -139,6 +139,36 @@ export interface BulkImportResult {
   errors: { row: number; message: string }[];
 }
 
+export interface LandingPage {
+  id: string;
+  title: string;
+  slug: string;
+  hero_heading: string;
+  hero_subheading: string | null;
+  cta_text: string;
+  cta_url: string;
+  featured_category_id: string | null;
+  is_published: boolean;
+}
+
+export interface Lead {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  country: string | null;
+  consent: boolean;
+  source: string;
+  created_at: string;
+}
+
+export interface PaginatedLeads {
+  items: Lead[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
 export const api = {
   signup: (data: { email: string; password: string; full_name: string; organization_name: string }) =>
     request<TokenResponse>("/api/auth/signup", { method: "POST", body: JSON.stringify(data) }),
@@ -314,5 +344,59 @@ export const api = {
       { method: "POST", body: formData },
       token
     );
+  },
+
+  listLandingPages: (orgId: string, token: string) =>
+    request<LandingPage[]>(`/api/organizations/${orgId}/landing-pages`, {}, token),
+
+  createLandingPage: (
+    orgId: string,
+    data: {
+      title: string;
+      hero_heading: string;
+      hero_subheading?: string;
+      cta_text?: string;
+      cta_url?: string;
+      featured_category_id?: string | null;
+    },
+    token: string
+  ) =>
+    request<LandingPage>(
+      `/api/organizations/${orgId}/landing-pages`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+
+  getLandingPage: (orgId: string, pageId: string, token: string) =>
+    request<LandingPage>(`/api/organizations/${orgId}/landing-pages/${pageId}`, {}, token),
+
+  updateLandingPage: (
+    orgId: string,
+    pageId: string,
+    data: Partial<{
+      title: string;
+      hero_heading: string;
+      hero_subheading: string | null;
+      cta_text: string;
+      cta_url: string;
+      featured_category_id: string | null;
+      is_published: boolean;
+    }>,
+    token: string
+  ) =>
+    request<LandingPage>(
+      `/api/organizations/${orgId}/landing-pages/${pageId}`,
+      { method: "PATCH", body: JSON.stringify(data) },
+      token
+    ),
+
+  deleteLandingPage: (orgId: string, pageId: string, token: string) =>
+    request<void>(`/api/organizations/${orgId}/landing-pages/${pageId}`, { method: "DELETE" }, token),
+
+  listLeads: (orgId: string, params: { page?: number; page_size?: number }, token: string) => {
+    const query = new URLSearchParams();
+    query.set("page", String(params.page ?? 1));
+    query.set("page_size", String(params.page_size ?? 20));
+    return request<PaginatedLeads>(`/api/organizations/${orgId}/leads?${query.toString()}`, {}, token);
   },
 };

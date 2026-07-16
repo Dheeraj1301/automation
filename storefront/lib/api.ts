@@ -63,6 +63,16 @@ export interface ProductDetail {
   images: CatalogImage[];
 }
 
+export interface LandingPage {
+  title: string;
+  slug: string;
+  hero_heading: string;
+  hero_subheading: string | null;
+  cta_text: string;
+  cta_url: string;
+  featured_category_id: string | null;
+}
+
 async function publicRequest<T>(path: string): Promise<T | null> {
   if (!MERCHANT_SLUG) return null;
 
@@ -97,4 +107,6 @@ export const storefrontApi = {
   },
 
   getProduct: (slug: string) => publicRequest<ProductDetail>(`/products/${slug}`),
+
+  getLandingPage: (slug: string) => publicRequest<LandingPage>(`/landing-pages/${slug}`),
 };

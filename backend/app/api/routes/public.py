@@ -11,14 +11,19 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.catalog import build_detail, build_list_item, clamp_page, clamp_page_size
+from app.core.logging import get_logger
 from app.db.session import get_db
 from app.models.category import Category
+from app.models.landing_page import LandingPage
+from app.models.lead import SOURCE_LANDING_PAGE, SOURCE_STOREFRONT, Lead
 from app.models.organization import Organization
 from app.models.product import ACTIVE, Product
+from app.schemas.marketing import LeadCreateRequest, LeadResponse, PublicLandingPageResponse
 from app.schemas.organization import PublicOrganizationResponse
 from app.schemas.product import CategoryResponse, PaginatedProducts, ProductDetailResponse
 
 router = APIRouter()
+logger = get_logger(__name__)
 
 
 def get_org_by_slug_or_404(db: Session, org_slug: str) -> Organization:
@@ -77,3 +82,59 @@ def get_public_product(org_slug: str, product_slug: str, db: Session = Depends(g
     if product is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
     return build_detail(product)
+
+
+@router.get("/{org_slug}/landing-pages/{page_slug}", response_model=PublicLandingPageResponse)
+def get_public_landing_page(org_slug: str, page_slug: str, db: Session = Depends(get_db)) -> LandingPage:
+    organization = get_org_by_slug_or_404(db, org_slug)
+    page = (
+        db.query(LandingPage)
+        .filter(
+            LandingPage.organization_id == organization.id,
+            LandingPage.slug == page_slug,
+            LandingPage.is_published.is_(True),
+        )
+        .first()
+    )
+    if page is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Landing page not found")
+    return page
+
+
+@router.post("/{org_slug}/leads", response_model=LeadResponse, status_code=status.HTTP_201_CREATED)
+def create_public_lead(org_slug: str, payload: LeadCreateRequest, db: Session = Depends(get_db)) -> Lead:
+    organization = get_org_by_slug_or_404(db, org_slug)
+
+    if not payload.consent:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Consent is required to submit this form")
+
+    landing_page = None
+    if payload.landing_page_slug:
+        landing_page = (
+            db.query(LandingPage)
+            .filter(LandingPage.organization_id == organization.id, LandingPage.slug == payload.landing_page_slug)
+            .first()
+        )
+
+    lead = Lead(
+        organization_id=organization.id,
+        name=payload.name,
+        email=payload.email,
+        phone=payload.phone,
+        country=payload.country,
+        consent=payload.consent,
+        landing_page_id=landing_page.id if landing_page else None,
+        source=SOURCE_LANDING_PAGE if landing_page else SOURCE_STOREFRONT,
+    )
+    db.add(lead)
+    db.commit()
+    db.refresh(lead)
+
+    logger.info(
+        "would_trigger_workflow",
+        workflow="new_lead_welcome",
+        organization_id=str(organization.id),
+        lead_id=str(lead.id),
+    )
+
+    return lead

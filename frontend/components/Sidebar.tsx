@@ -8,10 +8,10 @@ import { OrgSwitcher } from "@/components/OrgSwitcher";
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", exact: true },
   { label: "Products", href: "/dashboard/products", exact: false },
+  { label: "Landing Pages", href: "/dashboard/landing-pages", exact: false },
+  { label: "Leads", href: "/dashboard/leads", exact: false },
   { label: "Settings", href: "/dashboard/settings", exact: false },
 ];
-
-const UPCOMING_NAV_ITEMS = ["Leads"];
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -41,15 +41,6 @@ export function Sidebar() {
               </Link>
             );
           })}
-          {UPCOMING_NAV_ITEMS.map((label) => (
-            <span
-              key={label}
-              className="cursor-not-allowed rounded-md px-3 py-2 text-sm font-medium text-gray-400 dark:text-gray-600"
-              title="Coming in a later phase"
-            >
-              {label}
-            </span>
-          ))}
         </nav>
       </div>
       <div className="border-t border-gray-200 px-6 py-4 dark:border-gray-800">
