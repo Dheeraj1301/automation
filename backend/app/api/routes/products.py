@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_membership, require_role
 from app.api.routes.categories import get_or_create_category, unique_category_slug
-from app.core.catalog import clamp_page, clamp_page_size, parse_bulk_import_csv, total_inventory, variant_price_range
+from app.core.catalog import build_detail, build_list_item, clamp_page, clamp_page_size, parse_bulk_import_csv
 from app.core.logging import get_logger
 from app.core.provisioning import slugify
 from app.db.session import get_db
@@ -23,7 +23,6 @@ from app.schemas.product import (
     PaginatedProducts,
     ProductCreate,
     ProductDetailResponse,
-    ProductListItem,
     ProductUpdate,
     VariantCreate,
     VariantResponse,
@@ -70,36 +69,6 @@ def get_org_variant_or_404(db: Session, org_id: uuid.UUID, product_id: uuid.UUID
     if variant is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Variant not found")
     return variant
-
-
-def build_list_item(product: Product) -> ProductListItem:
-    min_price, max_price = variant_price_range(product.variants)
-    return ProductListItem(
-        id=product.id,
-        name=product.name,
-        slug=product.slug,
-        status=product.status,
-        category_name=product.category.name if product.category else None,
-        primary_image=product.images[0].file_path if product.images else None,
-        min_price=min_price,
-        max_price=max_price,
-        total_inventory=total_inventory(product.variants),
-        variant_count=len(product.variants),
-    )
-
-
-def build_detail(product: Product) -> ProductDetailResponse:
-    return ProductDetailResponse(
-        id=product.id,
-        name=product.name,
-        slug=product.slug,
-        description=product.description,
-        status=product.status,
-        category_id=product.category_id,
-        category_name=product.category.name if product.category else None,
-        variants=[VariantResponse.model_validate(v) for v in product.variants],
-        images=[ImageResponse.model_validate(i) for i in product.images],
-    )
 
 
 @router.get("", response_model=PaginatedProducts)

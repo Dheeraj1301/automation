@@ -28,6 +28,14 @@ class MyOrganizationResponse(OrganizationResponse):
     role: str
 
 
+class PublicOrganizationResponse(BaseModel):
+    name: str
+    slug: str
+    logo_path: str | None
+
+    model_config = {"from_attributes": True}
+
+
 class MemberResponse(BaseModel):
     user_id: uuid.UUID
     email: EmailStr

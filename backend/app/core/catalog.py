@@ -4,8 +4,13 @@ import csv
 import io
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
+from typing import TYPE_CHECKING
 
 from app.core.provisioning import slugify
+from app.schemas.product import ImageResponse, ProductDetailResponse, ProductListItem, VariantResponse
+
+if TYPE_CHECKING:
+    from app.models.product import Product
 
 DEFAULT_PAGE_SIZE = 20
 MAX_PAGE_SIZE = 100
@@ -34,6 +39,36 @@ def variant_price_range(variants: list) -> tuple[Decimal, Decimal]:
 
 def total_inventory(variants: list) -> int:
     return sum(v.inventory_count for v in variants)
+
+
+def build_list_item(product: "Product") -> ProductListItem:
+    min_price, max_price = variant_price_range(product.variants)
+    return ProductListItem(
+        id=product.id,
+        name=product.name,
+        slug=product.slug,
+        status=product.status,
+        category_name=product.category.name if product.category else None,
+        primary_image=product.images[0].file_path if product.images else None,
+        min_price=min_price,
+        max_price=max_price,
+        total_inventory=total_inventory(product.variants),
+        variant_count=len(product.variants),
+    )
+
+
+def build_detail(product: "Product") -> ProductDetailResponse:
+    return ProductDetailResponse(
+        id=product.id,
+        name=product.name,
+        slug=product.slug,
+        description=product.description,
+        status=product.status,
+        category_id=product.category_id,
+        category_name=product.category.name if product.category else None,
+        variants=[VariantResponse.model_validate(v) for v in product.variants],
+        images=[ImageResponse.model_validate(i) for i in product.images],
+    )
 
 
 @dataclass

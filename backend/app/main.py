@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.api.routes import auth, categories, health, invitations, organizations, products
+from app.api.routes import auth, categories, health, invitations, organizations, products, public
 from app.core.config import settings
 from app.core.logging import configure_logging, get_logger
 
@@ -41,6 +41,7 @@ app.include_router(
     categories.router, prefix="/api/organizations/{org_id}/categories", tags=["categories"]
 )
 app.include_router(products.router, prefix="/api/organizations/{org_id}/products", tags=["products"])
+app.include_router(public.router, prefix="/api/public", tags=["public"])
 
 UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=UPLOAD_ROOT), name="uploads")

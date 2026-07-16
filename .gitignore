@@ -9,6 +9,10 @@ frontend/.next/
 frontend/out/
 frontend/next-env.d.ts.bak
 frontend/tsconfig.tsbuildinfo
+storefront/node_modules/
+storefront/.next/
+storefront/out/
+storefront/tsconfig.tsbuildinfo
 npm-debug.log*
 
 # Python
