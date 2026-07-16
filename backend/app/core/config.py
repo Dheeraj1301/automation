@@ -20,5 +20,14 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: str = ""
     ANTHROPIC_MODEL: str = "claude-opus-4-8"
 
+    # Workflow engine (Phase 8) - n8n runs as its own container. Webhook
+    # paths match the two workflows in n8n/workflows/. If n8n is down or a
+    # workflow isn't imported/activated yet, triggering it fails silently
+    # (logged, never raised) so lead capture is never blocked by it.
+    N8N_BASE_URL: str = "http://n8n:5678"
+    N8N_WEBHOOK_PATH_LEAD_WHATSAPP: str = "new-lead-whatsapp"
+    N8N_WEBHOOK_PATH_LEAD_CRM: str = "new-lead-crm"
+    N8N_WEBHOOK_TIMEOUT_SECONDS: float = 3.0
+
 
 settings = Settings()

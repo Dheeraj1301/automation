@@ -1,0 +1,69 @@
+{
+  "name": "New Lead - CRM Sync (Mock)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "new-lead-crm",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f6a7b8c9-0001-4b6c-9d7e-2b3c4d5e6f01",
+      "name": "New Lead Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "a7b8c9d0-0002-4b6c-9d7e-2b3c4d5e6f02"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.all()[0].json;\nconsole.log('New lead received (CRM workflow):', JSON.stringify(body));\nreturn $input.all();"
+      },
+      "id": "b8c9d0e1-0003-4b6c-9d7e-2b3c4d5e6f03",
+      "name": "Log Lead",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.all()[0].json;\nconst lead = body.lead || {};\nconsole.log(`MOCK: would sync lead ${lead.name || 'unknown name'} <${lead.email || 'unknown email'}> to Zoho CRM`);\nreturn [{ json: { mock: 'crm_sync_completed', organization_id: body.organization_id, lead } }];"
+      },
+      "id": "c9d0e1f2-0004-4b6c-9d7e-2b3c4d5e6f04",
+      "name": "Mock CRM Sync",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "d0e1f2a3-0005-4b6c-9d7e-2b3c4d5e6f05",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "New Lead Webhook": {
+      "main": [[{ "node": "Log Lead", "type": "main", "index": 0 }]]
+    },
+    "Log Lead": {
+      "main": [[{ "node": "Mock CRM Sync", "type": "main", "index": 0 }]]
+    },
+    "Mock CRM Sync": {
+      "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

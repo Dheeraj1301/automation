@@ -1,21 +1,27 @@
 # ProfitPilot
 
-Multi-tenant SaaS for merchants. This is **Phase 1: Local Foundation** —
-an auth skeleton running entirely on Docker with no live third-party
-credentials.
+Multi-tenant SaaS for merchants. Built phase-by-phase (see the phase plan) —
+through Phase 8 this is: auth, org/team management, a product catalog, a
+public storefront, landing pages + lead capture, an AI Sales Agent, and a
+mocked workflow engine (n8n), all running locally on Docker.
 
 ## What's here
 
-- `frontend/` — Next.js 14 (TypeScript, App Router, Tailwind). Login, signup,
-  and an empty dashboard shell with a sidebar and light/dark theme.
-- `backend/` — FastAPI. JWT auth (signup/login/me), a `/api/health` check,
-  structured JSON logging.
-- PostgreSQL — `users`, `organizations`, `roles`, `memberships`, `settings`
-  tables, managed with Alembic migrations.
-- Redis — wired up (health check pings it) but not used for anything yet.
+- `frontend/` — Next.js 14 (TypeScript, App Router, Tailwind). The merchant
+  dashboard: auth, org switcher, products, landing pages, leads, AI config,
+  AI Sales Agent test chat, settings.
+- `storefront/` — separate Next.js app: the public-facing catalog site
+  (headless, reads the backend's public API), themeable via one config
+  object.
+- `backend/` — FastAPI. JWT auth, org-scoped REST API, structured JSON
+  logging, Anthropic-backed AI Sales Agent, n8n webhook triggers.
+- PostgreSQL — all app data, managed with Alembic migrations.
+- Redis — wired up but not yet used for anything load-bearing.
+- `n8n/` — workflow definitions for the mocked automation engine (Phase 8).
 
-No integrations (billing, Instagram, WhatsApp, CRM, AI) exist yet. Those
-land in later phases behind mock interfaces first.
+Live third-party integrations (Instagram, WhatsApp, Zoho CRM, real billing)
+don't exist yet — those land in later phases behind the mock interfaces
+already in place (`backend/app/services/`).
 
 ## Prerequisites
 
@@ -49,7 +55,31 @@ land in later phases behind mock interfaces first.
 
 4. Sign up for an account at http://localhost:3000/signup. This creates a
    user, a personal organization, and an "owner" membership, then logs you
-   into the empty dashboard shell.
+   into the dashboard.
+
+## Workflow engine (n8n) — one-time manual setup
+
+Phase 8 adds a self-hosted [n8n](https://n8n.io) instance for automation.
+The backend calls n8n's webhooks when a lead is captured; n8n itself is
+not auto-provisioned, so after your first `docker compose up`:
+
+1. Open http://localhost:5678 and create the local owner account n8n asks
+   for on first run (this stays entirely on your machine — not a live
+   n8n.io account).
+2. In the n8n UI, **Import from File** and pick each file in
+   `n8n/workflows/` (`new-lead-whatsapp.json`, `new-lead-crm.json`).
+3. Open each imported workflow and toggle it **Active** (top-right). Until
+   a workflow is active, its webhook returns 404 and the backend just logs
+   a "trigger failed" warning — lead capture itself is never blocked by
+   this.
+4. Submit a test lead (storefront Contact page, or a published landing
+   page) and check the **Executions** tab in n8n — both workflows should
+   show a run with the lead payload, ending in a "MOCK: would send..."
+   console log.
+
+The webhook paths (`new-lead-whatsapp`, `new-lead-crm`) and n8n's base URL
+are configurable via `N8N_WEBHOOK_PATH_LEAD_WHATSAPP` /
+`N8N_WEBHOOK_PATH_LEAD_CRM` / `N8N_BASE_URL` if you rename things.
 
 ## Development notes
 
@@ -73,22 +103,23 @@ land in later phases behind mock interfaces first.
 ├── backend/
 │   ├── app/
 │   │   ├── main.py            FastAPI app + router registration
-│   │   ├── core/               config, JWT/password hashing, logging, redis client
+│   │   ├── core/               config, security, logging, catalog/ai-agent business logic
 │   │   ├── db/                 SQLAlchemy engine/session/base
-│   │   ├── models/              User, Organization, Role, Membership, Setting
+│   │   ├── models/              org/catalog/marketing/AI-conversation tables
 │   │   ├── schemas/            Pydantic request/response models
-│   │   ├── api/routes/          auth, health
-│   │   └── services/            interface pattern for future integrations
+│   │   ├── api/routes/          auth, organizations, products, public, ai-agent, ...
+│   │   └── services/            mock provider interfaces (billing, Instagram, WhatsApp, Zoho, n8n)
 │   ├── alembic/                 migrations
 │   └── tests/
-└── frontend/
-    ├── app/                     login, signup, dashboard (App Router)
-    ├── components/               Sidebar, ThemeToggle, AuthCard
-    └── lib/                      api client, auth context, theme context
+├── frontend/                    merchant dashboard (Next.js)
+├── storefront/                  public catalog site (separate Next.js app)
+└── n8n/workflows/                importable n8n workflow definitions
 ```
 
 ## What's intentionally not here yet
 
-Billing, product catalog, storefronts, AI agents, workflow automation, and
-every live third-party integration (Hostinger, Meta, WhatsApp, Zoho) are
-out of scope for this phase — see the phase plan for what's next.
+Real billing, real Instagram/WhatsApp/Zoho integrations, and full
+end-to-end automation wiring are out of scope until their phase - each is
+already stubbed behind a mock service interface in `backend/app/services/`
+so swapping in the real thing later won't touch calling code. A live,
+public URL also requires Phase 9 (VPS + domain).

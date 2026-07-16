@@ -11,7 +11,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.catalog import build_detail, build_list_item, clamp_page, clamp_page_size
-from app.core.logging import get_logger
 from app.db.session import get_db
 from app.models.category import Category
 from app.models.landing_page import LandingPage
@@ -21,9 +20,9 @@ from app.models.product import ACTIVE, Product
 from app.schemas.marketing import LeadCreateRequest, LeadResponse, PublicLandingPageResponse
 from app.schemas.organization import PublicOrganizationResponse
 from app.schemas.product import CategoryResponse, PaginatedProducts, ProductDetailResponse
+from app.services.n8n_client import trigger_new_lead_workflows
 
 router = APIRouter()
-logger = get_logger(__name__)
 
 
 def get_org_by_slug_or_404(db: Session, org_slug: str) -> Organization:
@@ -130,11 +129,16 @@ def create_public_lead(org_slug: str, payload: LeadCreateRequest, db: Session = 
     db.commit()
     db.refresh(lead)
 
-    logger.info(
-        "would_trigger_workflow",
-        workflow="new_lead_welcome",
+    trigger_new_lead_workflows(
         organization_id=str(organization.id),
-        lead_id=str(lead.id),
+        lead={
+            "id": str(lead.id),
+            "name": lead.name,
+            "email": lead.email,
+            "phone": lead.phone,
+            "country": lead.country,
+            "source": lead.source,
+        },
     )
 
     return lead
