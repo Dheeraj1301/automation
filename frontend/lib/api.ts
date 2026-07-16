@@ -183,6 +183,32 @@ export interface AIConfig {
   return_policy: string;
 }
 
+export interface ChatResponse {
+  conversation_id: string;
+  message: string;
+}
+
+export interface ConversationSummary {
+  id: string;
+  customer_identifier: string;
+  created_at: string;
+  updated_at: string;
+  message_count: number;
+  last_message_preview: string | null;
+}
+
+export interface ConversationMessage {
+  role: "user" | "assistant";
+  content: string;
+  created_at: string;
+}
+
+export interface ConversationDetail {
+  id: string;
+  customer_identifier: string;
+  messages: ConversationMessage[];
+}
+
 export const api = {
   signup: (data: { email: string; password: string; full_name: string; organization_name: string }) =>
     request<TokenResponse>("/api/auth/signup", { method: "POST", body: JSON.stringify(data) }),
@@ -418,4 +444,16 @@ export const api = {
 
   updateAIConfig: (orgId: string, data: AIConfig, token: string) =>
     request<AIConfig>(`/api/organizations/${orgId}/ai-config`, { method: "PUT", body: JSON.stringify(data) }, token),
+
+  sendChatMessage: (
+    orgId: string,
+    data: { conversation_id?: string; message: string; customer_identifier?: string },
+    token: string
+  ) => request<ChatResponse>(`/api/organizations/${orgId}/ai/chat`, { method: "POST", body: JSON.stringify(data) }, token),
+
+  listConversations: (orgId: string, token: string) =>
+    request<ConversationSummary[]>(`/api/organizations/${orgId}/ai/conversations`, {}, token),
+
+  getConversation: (orgId: string, conversationId: string, token: string) =>
+    request<ConversationDetail>(`/api/organizations/${orgId}/ai/conversations/${conversationId}`, {}, token),
 };

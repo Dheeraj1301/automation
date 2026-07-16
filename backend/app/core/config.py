@@ -14,5 +14,11 @@ class Settings(BaseSettings):
 
     CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:3001"]
 
+    # AI Sales Agent (Phase 7) - unset by default. Set your own key in a
+    # git-ignored local .env; never paste it into chat. The agent returns a
+    # clear 503 until this is configured.
+    ANTHROPIC_API_KEY: str = ""
+    ANTHROPIC_MODEL: str = "claude-opus-4-8"
+
 
 settings = Settings()

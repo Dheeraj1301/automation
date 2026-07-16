@@ -10,6 +10,8 @@ from app.models.product_variant import ProductVariant
 from app.models.product_image import ProductImage
 from app.models.landing_page import LandingPage
 from app.models.lead import Lead
+from app.models.ai_conversation import AIConversation
+from app.models.ai_message import AIMessage
 
 __all__ = [
     "User",
@@ -24,4 +26,6 @@ __all__ = [
     "ProductImage",
     "LandingPage",
     "Lead",
+    "AIConversation",
+    "AIMessage",
 ]
