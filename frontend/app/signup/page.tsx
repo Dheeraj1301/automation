@@ -1,13 +1,13 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { AuthCard, FormField } from "@/components/AuthCard";
 
-export default function SignupPage() {
+function SignupForm() {
   const [fullName, setFullName] = useState("");
   const [organizationName, setOrganizationName] = useState("");
   const [email, setEmail] = useState("");
@@ -16,6 +16,7 @@ export default function SignupPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { setToken } = useAuth();
   const router = useRouter();
+  const next = useSearchParams().get("next");
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -29,7 +30,7 @@ export default function SignupPage() {
         organization_name: organizationName,
       });
       setToken(access_token);
-      router.push("/dashboard");
+      router.push(next || "/dashboard");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong");
     } finally {
@@ -78,5 +79,13 @@ export default function SignupPage() {
         </Link>
       </p>
     </AuthCard>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignupForm />
+    </Suspense>
   );
 }

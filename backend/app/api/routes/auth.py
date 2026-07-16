@@ -1,37 +1,16 @@
-import re
-import uuid
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.core.logging import get_logger
+from app.core.provisioning import create_organization_with_owner
 from app.core.security import create_access_token, hash_password, verify_password
 from app.db.session import get_db
-from app.models.membership import Membership
-from app.models.organization import Organization
-from app.models.role import Role
 from app.models.user import User
 from app.schemas.auth import LoginRequest, SignupRequest, TokenResponse, UserResponse
 
 router = APIRouter()
 logger = get_logger(__name__)
-
-OWNER_ROLE = "owner"
-
-
-def _slugify(name: str) -> str:
-    slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
-    return slug or uuid.uuid4().hex[:8]
-
-
-def _get_or_create_owner_role(db: Session) -> Role:
-    role = db.query(Role).filter(Role.name == OWNER_ROLE).first()
-    if role is None:
-        role = Role(name=OWNER_ROLE, description="Full access to the organization")
-        db.add(role)
-        db.flush()
-    return role
 
 
 @router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
@@ -48,19 +27,7 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)) -> TokenRespon
     db.add(user)
     db.flush()
 
-    base_slug = _slugify(payload.organization_name)
-    slug = base_slug
-    suffix = 1
-    while db.query(Organization).filter(Organization.slug == slug).first() is not None:
-        suffix += 1
-        slug = f"{base_slug}-{suffix}"
-
-    organization = Organization(name=payload.organization_name, slug=slug)
-    db.add(organization)
-    db.flush()
-
-    owner_role = _get_or_create_owner_role(db)
-    db.add(Membership(user_id=user.id, organization_id=organization.id, role_id=owner_role.id))
+    organization = create_organization_with_owner(db, user, payload.organization_name)
 
     db.commit()
 

@@ -3,10 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { OrgSwitcher } from "@/components/OrgSwitcher";
 
-const NAV_ITEMS = [{ label: "Dashboard", href: "/dashboard" }];
+const NAV_ITEMS = [
+  { label: "Dashboard", href: "/dashboard" },
+  { label: "Settings", href: "/dashboard/settings" },
+];
 
-const UPCOMING_NAV_ITEMS = ["Products", "Leads", "Settings"];
+const UPCOMING_NAV_ITEMS = ["Products", "Leads"];
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -18,6 +22,7 @@ export function Sidebar() {
         <div className="px-6 py-5 text-lg font-semibold text-gray-900 dark:text-gray-100">
           ProfitPilot
         </div>
+        <OrgSwitcher />
         <nav className="flex flex-col gap-1 px-3">
           {NAV_ITEMS.map((item) => (
             <Link

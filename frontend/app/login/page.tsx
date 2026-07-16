@@ -1,19 +1,20 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { AuthCard, FormField } from "@/components/AuthCard";
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { setToken } = useAuth();
   const router = useRouter();
+  const next = useSearchParams().get("next");
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -22,7 +23,7 @@ export default function LoginPage() {
     try {
       const { access_token } = await api.login({ email, password });
       setToken(access_token);
-      router.push("/dashboard");
+      router.push(next || "/dashboard");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong");
     } finally {
@@ -63,5 +64,13 @@ export default function LoginPage() {
         </Link>
       </p>
     </AuthCard>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }
