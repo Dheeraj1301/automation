@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import (
+    ai_config,
     auth,
     categories,
     health,
@@ -55,6 +56,7 @@ app.include_router(
     landing_pages.router, prefix="/api/organizations/{org_id}/landing-pages", tags=["landing-pages"]
 )
 app.include_router(leads.router, prefix="/api/organizations/{org_id}/leads", tags=["leads"])
+app.include_router(ai_config.router, prefix="/api/organizations/{org_id}/ai-config", tags=["ai-config"])
 app.include_router(public.router, prefix="/api/public", tags=["public"])
 
 UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)

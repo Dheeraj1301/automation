@@ -169,6 +169,20 @@ export interface PaginatedLeads {
   page_size: number;
 }
 
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+export interface AIConfig {
+  business_description: string;
+  brand_tone: string;
+  target_audience: string;
+  faqs: FaqItem[];
+  shipping_policy: string;
+  return_policy: string;
+}
+
 export const api = {
   signup: (data: { email: string; password: string; full_name: string; organization_name: string }) =>
     request<TokenResponse>("/api/auth/signup", { method: "POST", body: JSON.stringify(data) }),
@@ -399,4 +413,9 @@ export const api = {
     query.set("page_size", String(params.page_size ?? 20));
     return request<PaginatedLeads>(`/api/organizations/${orgId}/leads?${query.toString()}`, {}, token);
   },
+
+  getAIConfig: (orgId: string, token: string) => request<AIConfig>(`/api/organizations/${orgId}/ai-config`, {}, token),
+
+  updateAIConfig: (orgId: string, data: AIConfig, token: string) =>
+    request<AIConfig>(`/api/organizations/${orgId}/ai-config`, { method: "PUT", body: JSON.stringify(data) }, token),
 };

@@ -23,6 +23,8 @@ MARKETING_ENDPOINTS = [
     ("PATCH", f"/api/organizations/{ORG_ID}/landing-pages/{PAGE_ID}"),
     ("DELETE", f"/api/organizations/{ORG_ID}/landing-pages/{PAGE_ID}"),
     ("GET", f"/api/organizations/{ORG_ID}/leads"),
+    ("GET", f"/api/organizations/{ORG_ID}/ai-config"),
+    ("PUT", f"/api/organizations/{ORG_ID}/ai-config"),
 ]
 
 
