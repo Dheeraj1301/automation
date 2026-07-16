@@ -78,6 +78,67 @@ export interface InvitationPreview {
   is_valid: boolean;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export type ProductStatus = "active" | "draft" | "archived";
+
+export interface Variant {
+  id: string;
+  sku: string;
+  size: string | null;
+  color: string | null;
+  price: string;
+  inventory_count: number;
+}
+
+export interface CatalogImage {
+  id: string;
+  file_path: string;
+  position: number;
+}
+
+export interface ProductListItem {
+  id: string;
+  name: string;
+  slug: string;
+  status: ProductStatus;
+  category_name: string | null;
+  primary_image: string | null;
+  min_price: string;
+  max_price: string;
+  total_inventory: number;
+  variant_count: number;
+}
+
+export interface PaginatedProducts {
+  items: ProductListItem[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+export interface ProductDetail {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  status: ProductStatus;
+  category_id: string | null;
+  category_name: string | null;
+  variants: Variant[];
+  images: CatalogImage[];
+}
+
+export interface BulkImportResult {
+  products_created: number;
+  variants_created: number;
+  errors: { row: number; message: string }[];
+}
+
 export const api = {
   signup: (data: { email: string; password: string; full_name: string; organization_name: string }) =>
     request<TokenResponse>("/api/auth/signup", { method: "POST", body: JSON.stringify(data) }),
@@ -134,4 +195,124 @@ export const api = {
       { method: "POST", body: JSON.stringify({ token: inviteToken }) },
       authToken
     ),
+
+  listCategories: (orgId: string, token: string) =>
+    request<Category[]>(`/api/organizations/${orgId}/categories`, {}, token),
+
+  createCategory: (orgId: string, name: string, token: string) =>
+    request<Category>(
+      `/api/organizations/${orgId}/categories`,
+      { method: "POST", body: JSON.stringify({ name }) },
+      token
+    ),
+
+  deleteCategory: (orgId: string, categoryId: string, token: string) =>
+    request<void>(`/api/organizations/${orgId}/categories/${categoryId}`, { method: "DELETE" }, token),
+
+  listProducts: (
+    orgId: string,
+    params: { q?: string; category_id?: string; status?: string; page?: number; page_size?: number },
+    token: string
+  ) => {
+    const query = new URLSearchParams();
+    if (params.q) query.set("q", params.q);
+    if (params.category_id) query.set("category_id", params.category_id);
+    if (params.status) query.set("status", params.status);
+    query.set("page", String(params.page ?? 1));
+    query.set("page_size", String(params.page_size ?? 20));
+    return request<PaginatedProducts>(`/api/organizations/${orgId}/products?${query.toString()}`, {}, token);
+  },
+
+  createProduct: (
+    orgId: string,
+    data: {
+      name: string;
+      description?: string;
+      category_id?: string | null;
+      status: ProductStatus;
+      sku: string;
+      size?: string;
+      color?: string;
+      price: string;
+      inventory_count: number;
+    },
+    token: string
+  ) => request<ProductDetail>(`/api/organizations/${orgId}/products`, { method: "POST", body: JSON.stringify(data) }, token),
+
+  getProduct: (orgId: string, productId: string, token: string) =>
+    request<ProductDetail>(`/api/organizations/${orgId}/products/${productId}`, {}, token),
+
+  updateProduct: (
+    orgId: string,
+    productId: string,
+    data: Partial<{ name: string; description: string | null; category_id: string | null; status: ProductStatus }>,
+    token: string
+  ) =>
+    request<ProductDetail>(
+      `/api/organizations/${orgId}/products/${productId}`,
+      { method: "PATCH", body: JSON.stringify(data) },
+      token
+    ),
+
+  deleteProduct: (orgId: string, productId: string, token: string) =>
+    request<void>(`/api/organizations/${orgId}/products/${productId}`, { method: "DELETE" }, token),
+
+  addVariant: (
+    orgId: string,
+    productId: string,
+    data: { sku: string; size?: string; color?: string; price: string; inventory_count: number },
+    token: string
+  ) =>
+    request<Variant>(
+      `/api/organizations/${orgId}/products/${productId}/variants`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+
+  updateVariant: (
+    orgId: string,
+    productId: string,
+    variantId: string,
+    data: Partial<{ sku: string; size: string | null; color: string | null; price: string; inventory_count: number }>,
+    token: string
+  ) =>
+    request<Variant>(
+      `/api/organizations/${orgId}/products/${productId}/variants/${variantId}`,
+      { method: "PATCH", body: JSON.stringify(data) },
+      token
+    ),
+
+  deleteVariant: (orgId: string, productId: string, variantId: string, token: string) =>
+    request<void>(
+      `/api/organizations/${orgId}/products/${productId}/variants/${variantId}`,
+      { method: "DELETE" },
+      token
+    ),
+
+  uploadProductImage: (orgId: string, productId: string, file: File, token: string) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return request<CatalogImage>(
+      `/api/organizations/${orgId}/products/${productId}/images`,
+      { method: "POST", body: formData },
+      token
+    );
+  },
+
+  deleteProductImage: (orgId: string, productId: string, imageId: string, token: string) =>
+    request<void>(
+      `/api/organizations/${orgId}/products/${productId}/images/${imageId}`,
+      { method: "DELETE" },
+      token
+    ),
+
+  bulkImportProducts: (orgId: string, file: File, token: string) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return request<BulkImportResult>(
+      `/api/organizations/${orgId}/products/bulk-import`,
+      { method: "POST", body: formData },
+      token
+    );
+  },
 };

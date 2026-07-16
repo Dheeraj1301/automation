@@ -6,11 +6,12 @@ import { useAuth } from "@/lib/auth-context";
 import { OrgSwitcher } from "@/components/OrgSwitcher";
 
 const NAV_ITEMS = [
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "Settings", href: "/dashboard/settings" },
+  { label: "Dashboard", href: "/dashboard", exact: true },
+  { label: "Products", href: "/dashboard/products", exact: false },
+  { label: "Settings", href: "/dashboard/settings", exact: false },
 ];
 
-const UPCOMING_NAV_ITEMS = ["Products", "Leads"];
+const UPCOMING_NAV_ITEMS = ["Leads"];
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -24,19 +25,22 @@ export function Sidebar() {
         </div>
         <OrgSwitcher />
         <nav className="flex flex-col gap-1 px-3">
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`rounded-md px-3 py-2 text-sm font-medium ${
-                pathname === item.href
-                  ? "bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-500"
-                  : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {NAV_ITEMS.map((item) => {
+            const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`rounded-md px-3 py-2 text-sm font-medium ${
+                  isActive
+                    ? "bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-500"
+                    : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
           {UPCOMING_NAV_ITEMS.map((label) => (
             <span
               key={label}
