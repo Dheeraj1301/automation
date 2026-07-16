@@ -59,7 +59,7 @@
       "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1"
   },

@@ -57,25 +57,29 @@ already in place (`backend/app/services/`).
    user, a personal organization, and an "owner" membership, then logs you
    into the dashboard.
 
-## Workflow engine (n8n) — one-time manual setup
+## Workflow engine (n8n)
 
 Phase 8 adds a self-hosted [n8n](https://n8n.io) instance for automation.
-The backend calls n8n's webhooks when a lead is captured; n8n itself is
-not auto-provisioned, so after your first `docker compose up`:
+The backend calls n8n's webhooks when a lead is captured. Set up the two
+workflows with one command — no manual "Import from File" clicking needed:
 
-1. Open http://localhost:5678 and create the local owner account n8n asks
-   for on first run (this stays entirely on your machine — not a live
-   n8n.io account).
-2. In the n8n UI, **Import from File** and pick each file in
-   `n8n/workflows/` (`new-lead-whatsapp.json`, `new-lead-crm.json`).
-3. Open each imported workflow and toggle it **Active** (top-right). Until
-   a workflow is active, its webhook returns 404 and the backend just logs
-   a "trigger failed" warning — lead capture itself is never blocked by
-   this.
-4. Submit a test lead (storefront Contact page, or a published landing
-   page) and check the **Executions** tab in n8n — both workflows should
-   show a run with the lead payload, ending in a "MOCK: would send..."
-   console log.
+```bash
+docker compose up -d
+sh n8n/import-workflows.sh
+```
+
+The script waits for n8n's health check, imports both workflows from
+`n8n/workflows/` via n8n's own CLI, and restarts n8n so their webhooks
+register as active. Until a workflow is active, its webhook returns 404
+and the backend just logs a "trigger failed" warning — lead capture is
+never blocked by this either way.
+
+To watch executions, open http://localhost:5678 (n8n will ask you to set
+a local username/password on first visit — this is your own instance,
+nothing external). Then submit a test lead (storefront Contact page, or a
+published landing page) and check the **Executions** tab — both workflows
+should show a run with the lead payload, ending in a "MOCK: would send..."
+console log.
 
 The webhook paths (`new-lead-whatsapp`, `new-lead-crm`) and n8n's base URL
 are configurable via `N8N_WEBHOOK_PATH_LEAD_WHATSAPP` /
