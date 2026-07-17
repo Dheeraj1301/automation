@@ -24,6 +24,13 @@ echo "### Building and starting services ..."
 # backend/docker-entrypoint.sh) - no separate migrate step needed here.
 $COMPOSE up -d --build
 
+# nginx resolves upstream hostnames (backend/frontend/storefront) once at
+# its own startup and caches the IPs - if those containers get recreated
+# with new IPs (any code change to them triggers this) and nginx doesn't
+# restart too, it keeps proxying to the dead old IP and every request 502s.
+echo "### Restarting nginx to pick up any recreated container IPs ..."
+$COMPOSE restart nginx
+
 echo "### Pruning old, now-unused images ..."
 docker image prune -f
 
