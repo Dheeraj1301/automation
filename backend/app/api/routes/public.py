@@ -7,10 +7,11 @@ Only status="active" products are ever exposed here.
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
 
 from app.core.catalog import build_detail, build_list_item, clamp_page, clamp_page_size
+from app.core.rate_limit import enforce_rate_limit
 from app.db.session import get_db
 from app.models.category import Category
 from app.models.landing_page import LandingPage
@@ -20,7 +21,7 @@ from app.models.product import ACTIVE, Product
 from app.schemas.marketing import LeadCreateRequest, LeadResponse, PublicLandingPageResponse
 from app.schemas.organization import PublicOrganizationResponse
 from app.schemas.product import CategoryResponse, PaginatedProducts, ProductDetailResponse
-from app.services.n8n_client import trigger_new_lead_workflows
+from app.services.lead_automation import run_lead_automation
 
 router = APIRouter()
 
@@ -101,7 +102,15 @@ def get_public_landing_page(org_slug: str, page_slug: str, db: Session = Depends
 
 
 @router.post("/{org_slug}/leads", response_model=LeadResponse, status_code=status.HTTP_201_CREATED)
-def create_public_lead(org_slug: str, payload: LeadCreateRequest, db: Session = Depends(get_db)) -> Lead:
+def create_public_lead(
+    org_slug: str,
+    payload: LeadCreateRequest,
+    request: Request,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+) -> Lead:
+    enforce_rate_limit(f"public_lead:{request.client.host if request.client else 'unknown'}")
+
     organization = get_org_by_slug_or_404(db, org_slug)
 
     if not payload.consent:
@@ -129,7 +138,8 @@ def create_public_lead(org_slug: str, payload: LeadCreateRequest, db: Session = 
     db.commit()
     db.refresh(lead)
 
-    trigger_new_lead_workflows(
+    background_tasks.add_task(
+        run_lead_automation,
         organization_id=str(organization.id),
         lead={
             "id": str(lead.id),

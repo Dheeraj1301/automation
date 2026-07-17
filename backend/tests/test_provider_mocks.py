@@ -27,6 +27,8 @@ def test_whatsapp_mock_reports_sent_without_calling_any_api():
 
 
 def test_zoho_mock_reports_synced_without_calling_any_api():
-    result = ZohoServiceMock().sync_lead(organization_id="org-1", lead={"name": "Alice", "email": "a@example.com"})
+    result = ZohoServiceMock().sync_lead(
+        access_token="unused", api_domain="unused", lead={"name": "Alice", "email": "a@example.com"}
+    )
     assert result.synced is True
     assert result.provider_record_id is None

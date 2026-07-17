@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useOrg } from "@/lib/org-context";
 import { api, ApiError, Invitation, Member } from "@/lib/api";
@@ -21,9 +22,109 @@ export default function SettingsPage() {
       <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Organization settings</h1>
 
       <OrganizationDetails token={token} canManage={canManage} onSaved={refreshOrganizations} />
+      {canManage && <IntegrationsSection token={token} />}
       <MembersSection token={token} canManage={canManage} isOwner={currentOrg.role === "owner"} />
       {canManage && <InvitesSection token={token} />}
     </div>
+  );
+}
+
+function IntegrationsSection({ token }: { token: string }) {
+  const { currentOrg } = useOrg();
+  const searchParams = useSearchParams();
+  const [connected, setConnected] = useState<boolean | null>(null);
+  const [connectedEmail, setConnectedEmail] = useState<string | null>(null);
+  const [isBusy, setIsBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  async function load() {
+    if (!currentOrg) return;
+    try {
+      const status = await api.getZohoStatus(currentOrg.id, token);
+      setConnected(status.connected);
+      setConnectedEmail(status.connected_email);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not load integration status");
+    }
+  }
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentOrg?.id]);
+
+  useEffect(() => {
+    const zohoParam = searchParams.get("zoho");
+    if (zohoParam === "connected") setNotice("Zoho CRM connected. New leads will sync automatically.");
+    if (zohoParam === "error") setError("Could not connect Zoho CRM. Please try again.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (!currentOrg) return null;
+
+  async function handleConnect() {
+    setIsBusy(true);
+    setError(null);
+    try {
+      const { authorization_url } = await api.connectZoho(currentOrg!.id, token);
+      window.location.href = authorization_url;
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not start Zoho connection");
+      setIsBusy(false);
+    }
+  }
+
+  async function handleDisconnect() {
+    setIsBusy(true);
+    setError(null);
+    try {
+      await api.disconnectZoho(currentOrg!.id, token);
+      await load();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not disconnect Zoho");
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  return (
+    <section className="rounded-xl border border-gray-200 p-6 dark:border-gray-800">
+      <h2 className="mb-4 text-lg font-medium text-gray-900 dark:text-gray-100">Integrations</h2>
+
+      {notice && <p className="mb-3 text-sm text-green-600">{notice}</p>}
+      {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
+
+      <div className="flex items-center justify-between rounded-lg border border-gray-100 p-4 dark:border-gray-800">
+        <div>
+          <p className="font-medium text-gray-900 dark:text-gray-100">Zoho CRM</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {connected === null
+              ? "Loading..."
+              : connected
+              ? `Connected as ${connectedEmail ?? "your Zoho account"}. Every new lead syncs automatically.`
+              : "Connect your Zoho account to sync every new lead into Zoho CRM in real time."}
+          </p>
+        </div>
+        {connected ? (
+          <button
+            onClick={handleDisconnect}
+            disabled={isBusy}
+            className="rounded-md border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+          >
+            Disconnect
+          </button>
+        ) : (
+          <button
+            onClick={handleConnect}
+            disabled={isBusy || connected === null}
+            className="rounded-md bg-brand-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+          >
+            {isBusy ? "Redirecting..." : "Connect Zoho CRM"}
+          </button>
+        )}
+      </div>
+    </section>
   );
 }
 

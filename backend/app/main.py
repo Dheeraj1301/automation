@@ -12,6 +12,7 @@ from app.api.routes import (
     auth,
     categories,
     health,
+    integrations,
     invitations,
     landing_pages,
     leads,
@@ -59,6 +60,10 @@ app.include_router(
 app.include_router(leads.router, prefix="/api/organizations/{org_id}/leads", tags=["leads"])
 app.include_router(ai_config.router, prefix="/api/organizations/{org_id}/ai-config", tags=["ai-config"])
 app.include_router(ai_agent.router, prefix="/api/organizations/{org_id}/ai", tags=["ai-agent"])
+app.include_router(
+    integrations.router, prefix="/api/organizations/{org_id}/integrations", tags=["integrations"]
+)
+app.include_router(integrations.public_router, prefix="/api/integrations", tags=["integrations"])
 app.include_router(public.router, prefix="/api/public", tags=["public"])
 
 UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)

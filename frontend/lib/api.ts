@@ -183,6 +183,11 @@ export interface AIConfig {
   return_policy: string;
 }
 
+export interface ZohoStatus {
+  connected: boolean;
+  connected_email: string | null;
+}
+
 export interface ChatResponse {
   conversation_id: string;
   message: string;
@@ -456,4 +461,13 @@ export const api = {
 
   getConversation: (orgId: string, conversationId: string, token: string) =>
     request<ConversationDetail>(`/api/organizations/${orgId}/ai/conversations/${conversationId}`, {}, token),
+
+  getZohoStatus: (orgId: string, token: string) =>
+    request<ZohoStatus>(`/api/organizations/${orgId}/integrations/zoho/status`, {}, token),
+
+  connectZoho: (orgId: string, token: string) =>
+    request<{ authorization_url: string }>(`/api/organizations/${orgId}/integrations/zoho/connect`, {}, token),
+
+  disconnectZoho: (orgId: string, token: string) =>
+    request<void>(`/api/organizations/${orgId}/integrations/zoho/disconnect`, { method: "POST" }, token),
 };
