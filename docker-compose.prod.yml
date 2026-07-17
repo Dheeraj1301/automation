@@ -42,7 +42,7 @@ services:
       REDIS_URL: redis://redis:6379/0
       JWT_SECRET: ${JWT_SECRET}
       JWT_ALGORITHM: HS256
-      CORS_ORIGINS: '["https://${DOMAIN}","https://www.${DOMAIN}","https://app.${DOMAIN}"]'
+      CORS_ORIGINS: '["https://${DOMAIN}","https://app.${DOMAIN}"]'
       FRONTEND_URL: https://app.${DOMAIN}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-opus-4-8}

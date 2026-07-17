@@ -177,8 +177,10 @@ and internal-only ports for Postgres/Redis/n8n.
 
 ### One-time setup on a fresh VPS
 
-1. Point DNS at the VPS: A records for `@`, `www`, `app`, `api`, and
-   `automation` subdomains, all to the VPS's IP.
+1. Point DNS at the VPS: A records for `@` (or a subdomain like
+   `profitpanel` if the apex domain is already used for something else),
+   plus `app.`, `api.`, and `automation.` subdomains of whatever DOMAIN
+   ends up being, all to the VPS's IP.
 2. Install Docker Engine + Compose plugin on the VPS, then clone this repo.
 3. `cp .env.production.example .env.production` and fill in every value -
    see the comments in that file. `JWT_SECRET` and `N8N_ENCRYPTION_KEY` are
@@ -196,7 +198,8 @@ and internal-only ports for Postgres/Redis/n8n.
 
 ### Routing
 
-- `https://<domain>` / `www.` - public storefront
+- `https://<domain>` - public storefront (no `www.` - not a fit when DOMAIN
+  is itself already a subdomain, e.g. `profitpanel.example.com`)
 - `https://app.<domain>` - merchant dashboard
 - `https://api.<domain>` - backend API
 - `https://automation.<domain>` - n8n editor + webhooks, gated by n8n's own

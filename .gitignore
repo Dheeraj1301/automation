@@ -3,6 +3,7 @@
 .env.local
 .env.production
 *.pem
+.deploy/
 
 # Let's Encrypt certs/challenges (generated on the VPS, never checked in)
 certbot/

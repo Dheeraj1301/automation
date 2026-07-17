@@ -28,7 +28,7 @@ if [ -z "$DOMAIN" ] || [ -z "$LETSENCRYPT_EMAIL" ]; then
 fi
 
 COMPOSE="docker compose -f docker-compose.prod.yml --env-file .env.production"
-DOMAINS="$DOMAIN www.$DOMAIN app.$DOMAIN api.$DOMAIN automation.$DOMAIN"
+DOMAINS="$DOMAIN app.$DOMAIN api.$DOMAIN automation.$DOMAIN"
 
 echo "### Creating a dummy self-signed cert so nginx can start ..."
 mkdir -p "certbot/conf/live/$DOMAIN" certbot/www
