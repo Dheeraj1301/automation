@@ -8,6 +8,7 @@ from app.core.security import create_access_token, hash_password, verify_passwor
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.auth import LoginRequest, SignupRequest, TokenResponse, UserResponse
+from app.services import whatsapp_verification
 
 router = APIRouter()
 logger = get_logger(__name__)
@@ -27,11 +28,18 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)) -> TokenRespon
     db.add(user)
     db.flush()
 
-    organization = create_organization_with_owner(db, user, payload.organization_name)
+    organization = create_organization_with_owner(db, user, payload.organization_name, payload.whatsapp_number)
 
     db.commit()
 
     logger.info("user_signed_up", user_id=str(user.id), organization_id=str(organization.id))
+
+    try:
+        whatsapp_verification.send_verification_code(db, organization)
+    except Exception:
+        # Never let a WhatsApp delivery hiccup block account creation - the
+        # merchant can always hit "resend code" from the verification screen.
+        logger.warning("whatsapp_verification_send_failed_at_signup", organization_id=str(organization.id))
 
     token = create_access_token(subject=str(user.id))
     return TokenResponse(access_token=token)

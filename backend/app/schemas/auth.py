@@ -8,6 +8,9 @@ class SignupRequest(BaseModel):
     password: str = Field(min_length=8)
     full_name: str = Field(min_length=1, max_length=255)
     organization_name: str = Field(min_length=1, max_length=255)
+    # E.164 format (e.g. +14155552671) - the number a customer's "Contact us
+    # on WhatsApp" click and the AI Sales Agent's handoff both point to.
+    whatsapp_number: str = Field(pattern=r"^\+[1-9]\d{7,14}$")
 
 
 class LoginRequest(BaseModel):

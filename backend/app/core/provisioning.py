@@ -35,8 +35,10 @@ def get_or_create_role(db: Session, name: str) -> Role:
     return role
 
 
-def create_organization_with_owner(db: Session, user: User, name: str) -> Organization:
-    organization = Organization(name=name, slug=unique_slug(db, name))
+def create_organization_with_owner(
+    db: Session, user: User, name: str, whatsapp_number: str | None = None
+) -> Organization:
+    organization = Organization(name=name, slug=unique_slug(db, name), whatsapp_number=whatsapp_number)
     db.add(organization)
     db.flush()
 

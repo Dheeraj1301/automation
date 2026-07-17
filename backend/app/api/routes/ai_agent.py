@@ -95,7 +95,8 @@ def chat(
 
     ai_config = _load_ai_config(db, org_id)
     products = [_to_product_context(p) for p in _find_relevant_products(db, org_id, payload.message)]
-    system_prompt = build_system_prompt(organization.name, ai_config, products)
+    handoff_number = organization.whatsapp_number if organization.whatsapp_verified else None
+    system_prompt = build_system_prompt(organization.name, ai_config, products, handoff_number)
 
     history_rows = (
         db.query(AIMessage).filter(AIMessage.conversation_id == conversation.id).order_by(AIMessage.created_at).all()

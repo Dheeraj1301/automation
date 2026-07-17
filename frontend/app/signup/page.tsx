@@ -12,6 +12,7 @@ function SignupForm() {
   const [organizationName, setOrganizationName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [whatsappNumber, setWhatsappNumber] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { setToken } = useAuth();
@@ -28,9 +29,10 @@ function SignupForm() {
         password,
         full_name: fullName,
         organization_name: organizationName,
+        whatsapp_number: whatsappNumber,
       });
       setToken(access_token);
-      router.push(next || "/dashboard");
+      router.push(`/verify-whatsapp${next ? `?next=${encodeURIComponent(next)}` : ""}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong");
     } finally {
@@ -63,6 +65,21 @@ function SignupForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+        <FormField
+          label="WhatsApp business number"
+          type="tel"
+          required
+          placeholder="+14155552671"
+          pattern="^\+[1-9]\d{7,14}$"
+          title="Include the country code, e.g. +14155552671"
+          value={whatsappNumber}
+          onChange={(e) => setWhatsappNumber(e.target.value)}
+        />
+        <p className="-mt-2 mb-4 text-xs text-gray-500 dark:text-gray-400">
+          Include the country code (e.g. +1 for the US, +91 for India). We&apos;ll text a
+          verification code to this number next - it&apos;s also where the AI Sales Agent
+          sends customers to close a sale.
+        </p>
         {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
         <button
           type="submit"

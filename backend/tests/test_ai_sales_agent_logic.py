@@ -91,3 +91,15 @@ def test_build_system_prompt_handles_empty_ai_config_gracefully():
     assert "My Store" in prompt
     assert "Not provided." in prompt
     assert "No matching products" in prompt
+
+
+def test_build_system_prompt_omits_handoff_rule_when_no_whatsapp_number():
+    prompt = build_system_prompt("My Store", AIConfigData(), [])
+    assert "WhatsApp" not in prompt
+
+
+def test_build_system_prompt_includes_handoff_rule_when_whatsapp_number_given():
+    prompt = build_system_prompt("My Store", AIConfigData(), [], whatsapp_number="+15551234567")
+    assert "+15551234567" in prompt
+    assert "WhatsApp" in prompt
+    assert "ready to close the sale" in prompt

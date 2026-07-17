@@ -20,6 +20,8 @@ class OrganizationResponse(BaseModel):
     slug: str
     plan: str
     logo_path: str | None
+    whatsapp_number: str | None
+    whatsapp_verified: bool
 
     model_config = {"from_attributes": True}
 
@@ -71,3 +73,12 @@ class InvitationPreviewResponse(BaseModel):
 
 class AcceptInviteRequest(BaseModel):
     token: str
+
+
+class WhatsAppVerifyConfirmRequest(BaseModel):
+    code: str = Field(min_length=4, max_length=8)
+
+
+class WhatsAppVerifyStatusResponse(BaseModel):
+    whatsapp_number: str | None
+    whatsapp_verified: bool

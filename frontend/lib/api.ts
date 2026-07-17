@@ -50,6 +50,8 @@ export interface Organization {
   slug: string;
   plan: string;
   logo_path: string | null;
+  whatsapp_number: string | null;
+  whatsapp_verified: boolean;
 }
 
 export interface MyOrganization extends Organization {
@@ -215,8 +217,13 @@ export interface ConversationDetail {
 }
 
 export const api = {
-  signup: (data: { email: string; password: string; full_name: string; organization_name: string }) =>
-    request<TokenResponse>("/api/auth/signup", { method: "POST", body: JSON.stringify(data) }),
+  signup: (data: {
+    email: string;
+    password: string;
+    full_name: string;
+    organization_name: string;
+    whatsapp_number: string;
+  }) => request<TokenResponse>("/api/auth/signup", { method: "POST", body: JSON.stringify(data) }),
 
   login: (data: { email: string; password: string }) =>
     request<TokenResponse>("/api/auth/login", { method: "POST", body: JSON.stringify(data) }),
@@ -470,4 +477,14 @@ export const api = {
 
   disconnectZoho: (orgId: string, token: string) =>
     request<void>(`/api/organizations/${orgId}/integrations/zoho/disconnect`, { method: "POST" }, token),
+
+  sendWhatsAppVerification: (orgId: string, token: string) =>
+    request<void>(`/api/organizations/${orgId}/whatsapp-verification/send`, { method: "POST" }, token),
+
+  confirmWhatsAppVerification: (orgId: string, code: string, token: string) =>
+    request<{ whatsapp_number: string; whatsapp_verified: boolean }>(
+      `/api/organizations/${orgId}/whatsapp-verification/confirm`,
+      { method: "POST", body: JSON.stringify({ code }) },
+      token
+    ),
 };

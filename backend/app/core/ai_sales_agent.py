@@ -60,11 +60,24 @@ def format_catalog_context(products: list[ProductContext]) -> str:
     return "\n".join(lines)
 
 
-def build_system_prompt(organization_name: str, ai_config: AIConfigData, products: list[ProductContext]) -> str:
+def build_system_prompt(
+    organization_name: str,
+    ai_config: AIConfigData,
+    products: list[ProductContext],
+    whatsapp_number: str | None = None,
+) -> str:
     faqs_text = (
         "\n".join(f"Q: {faq.question}\nA: {faq.answer}" for faq in ai_config.faqs)
         if ai_config.faqs
         else "None provided."
+    )
+
+    handoff_rule = (
+        f"5. If the customer asks about final pricing, availability/lead time, wants to negotiate, "
+        f"or is ready to close the sale, tell them to continue on WhatsApp at {whatsapp_number} to "
+        f"finish with a team member - don't try to close the deal yourself."
+        if whatsapp_number
+        else ""
     )
 
     return f"""You are the AI sales assistant for {organization_name}.
@@ -94,4 +107,5 @@ RULES (follow these strictly):
 1. You may only mention products, prices, and stock levels that appear in the CATALOG CONTEXT above. Never invent a product name, SKU, or price.
 2. If the customer asks about a product not listed in CATALOG CONTEXT, say you don't have that information and offer to help them browse the catalog instead.
 3. Stay in the brand tone described above.
-4. Keep responses concise and helpful, like a real sales assistant."""
+4. Keep responses concise and helpful, like a real sales assistant.
+{handoff_rule}"""

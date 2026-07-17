@@ -26,8 +26,12 @@ from app.schemas.organization import (
     OrganizationCreate,
     OrganizationResponse,
     OrganizationUpdate,
+    WhatsAppVerifyConfirmRequest,
+    WhatsAppVerifyStatusResponse,
 )
+from app.services import whatsapp_verification
 from app.services.billing import billing_provider
+from app.services.whatsapp_verification import OTPError
 
 router = APIRouter()
 logger = get_logger(__name__)
@@ -52,7 +56,14 @@ def list_my_organizations(
     )
     return [
         MyOrganizationResponse(
-            id=org.id, name=org.name, slug=org.slug, plan=org.plan, logo_path=org.logo_path, role=role_name
+            id=org.id,
+            name=org.name,
+            slug=org.slug,
+            plan=org.plan,
+            logo_path=org.logo_path,
+            whatsapp_number=org.whatsapp_number,
+            whatsapp_verified=org.whatsapp_verified,
+            role=role_name,
         )
         for org, role_name in rows
     ]
@@ -263,6 +274,35 @@ def revoke_invite(
 
     invitation.status = REVOKED
     db.commit()
+
+
+@router.post("/{org_id}/whatsapp-verification/send", status_code=status.HTTP_204_NO_CONTENT)
+def send_whatsapp_verification(
+    org_id: uuid.UUID,
+    membership: Membership = Depends(require_role("owner", "admin")),
+    db: Session = Depends(get_db),
+) -> None:
+    organization = db.get(Organization, org_id)
+    if organization.whatsapp_verified:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This number is already verified")
+    try:
+        whatsapp_verification.send_verification_code(db, organization)
+    except OTPError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+
+
+@router.post("/{org_id}/whatsapp-verification/confirm", response_model=WhatsAppVerifyStatusResponse)
+def confirm_whatsapp_verification(
+    org_id: uuid.UUID,
+    payload: WhatsAppVerifyConfirmRequest,
+    membership: Membership = Depends(require_role("owner", "admin")),
+    db: Session = Depends(get_db),
+) -> WhatsAppVerifyStatusResponse:
+    organization = db.get(Organization, org_id)
+    result = whatsapp_verification.confirm_verification_code(db, organization, payload.code)
+    if not result.verified:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result.error)
+    return WhatsAppVerifyStatusResponse(whatsapp_number=organization.whatsapp_number, whatsapp_verified=True)
 
 
 @router.get("/{org_id}/pro-feature-demo")

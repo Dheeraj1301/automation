@@ -61,6 +61,53 @@ refreshed automatically ~5 minutes before they'd expire. Disconnecting just
 deletes the stored connection — Zoho-side revocation is on the merchant to
 do from their own Zoho account if they want it fully severed.
 
+## WhatsApp business number + AI Sales Agent handoff (Phase 9)
+
+Every merchant provides their WhatsApp business number at signup and
+verifies it with a one-time code before reaching the dashboard
+(`/verify-whatsapp` — the account exists either way, but the rest of the
+dashboard stays gated until verified). That number is used two ways:
+
+1. It's the merchant's own contact number, shown in their storefront/AI
+   config as the human handoff point.
+2. When a customer chats with the AI Sales Agent and asks about final
+   pricing, availability, or wants to close the sale, the agent's system
+   prompt instructs it to direct them to that WhatsApp number rather than
+   trying to close the deal itself (see `build_system_prompt` in
+   `backend/app/core/ai_sales_agent.py`).
+
+**Right now, verification is mocked** — the OTP is generated and logged
+(`docker compose logs backend`, look for `whatsapp_message_mocked`) rather
+than actually sent, same swap-later pattern as every other integration
+here. To make delivery (and eventually two-way messaging) real:
+
+1. Create a Meta Business Manager account and a Meta developer app with the
+   **WhatsApp Business Platform (Cloud API)** product added.
+2. Register/verify a phone number in the Meta dashboard (this is Meta's own
+   verification, separate from ProfitPilot's OTP flow above — a real
+   WhatsApp Business number can't be added to two Business accounts, so
+   this typically becomes the merchant's own number once real).
+3. Generate a permanent access token (System User token, not a 24-hour
+   temporary one) and note the Phone Number ID.
+4. Submit and get approval for message templates - Meta requires
+   pre-approved templates for any message sent outside a 24-hour customer
+   reply window (this covers both the OTP template and any AI Sales Agent
+   handoff notification you want automated).
+5. Implement `WhatsAppServiceReal` in `backend/app/services/whatsapp.py`
+   (same interface as `WhatsAppServiceMock` - `send_template_message`) and
+   swap it in where `whatsapp_service` is assigned. Both the OTP flow
+   (`whatsapp_verification.py`) and any future outbound messaging call
+   through that same interface, so nothing else needs to change.
+6. Set up a webhook endpoint for inbound messages if you want the AI Sales
+   Agent to actually receive and reply to WhatsApp messages directly,
+   rather than just handing off to a human via the number - that's a
+   separate, larger integration (subscribing to Meta's webhook, verifying
+   its signature, mapping inbound messages to the existing AIConversation
+   model) not yet built.
+7. For business verification (higher messaging limits, green checkmark),
+   Meta requires proof of business legitimacy - a registered business
+   entity, website, etc.
+
 ## Prerequisites
 
 - Docker Desktop (with Docker Compose)

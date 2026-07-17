@@ -227,6 +227,17 @@ function OrganizationDetails({
         Plan: <span className="font-medium text-gray-700 dark:text-gray-300">{currentOrg.plan}</span> ·{" "}
         {SEAT_LIMITS[currentOrg.plan] ?? ""}
       </p>
+      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        WhatsApp:{" "}
+        <span className="font-medium text-gray-700 dark:text-gray-300">
+          {currentOrg.whatsapp_number ?? "Not set"}
+        </span>{" "}
+        {currentOrg.whatsapp_verified ? (
+          <span className="text-green-600">(verified)</span>
+        ) : (
+          <span className="text-amber-600">(not verified)</span>
+        )}
+      </p>
     </section>
   );
 }
