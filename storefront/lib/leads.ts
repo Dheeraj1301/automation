@@ -7,9 +7,14 @@ export interface LeadSubmission {
   name: string;
   email: string;
   phone?: string;
+  company?: string;
   country?: string;
   consent: boolean;
   landing_page_slug?: string;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  referrer?: string;
 }
 
 export async function submitLead(data: LeadSubmission): Promise<{ ok: boolean; error?: string }> {

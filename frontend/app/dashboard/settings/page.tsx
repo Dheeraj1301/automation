@@ -38,6 +38,7 @@ function OrganizationDetails({
 }) {
   const { currentOrg } = useOrg();
   const [name, setName] = useState(currentOrg?.name ?? "");
+  const [supportPhone, setSupportPhone] = useState(currentOrg?.support_phone ?? "");
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -45,7 +46,8 @@ function OrganizationDetails({
 
   useEffect(() => {
     setName(currentOrg?.name ?? "");
-  }, [currentOrg?.id, currentOrg?.name]);
+    setSupportPhone(currentOrg?.support_phone ?? "");
+  }, [currentOrg?.id, currentOrg?.name, currentOrg?.support_phone]);
 
   if (!currentOrg) return null;
 
@@ -55,7 +57,7 @@ function OrganizationDetails({
     setError(null);
     setMessage(null);
     try {
-      await api.updateOrganization(currentOrg!.id, { name }, token);
+      await api.updateOrganization(currentOrg!.id, { name, support_phone: supportPhone || null }, token);
       await onSaved();
       setMessage("Saved");
     } catch (err) {
@@ -107,8 +109,21 @@ function OrganizationDetails({
           value={name}
           onChange={(e) => setName(e.target.value)}
           disabled={!canManage}
-          className="mb-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 disabled:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:disabled:bg-gray-900"
+          className="mb-4 w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 disabled:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:disabled:bg-gray-900"
         />
+        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          WhatsApp support number
+        </label>
+        <input
+          value={supportPhone}
+          onChange={(e) => setSupportPhone(e.target.value)}
+          disabled={!canManage}
+          placeholder="+15551234567"
+          className="mb-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 disabled:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:disabled:bg-gray-900"
+        />
+        <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+          Include the country code. Powers the WhatsApp button on your storefront.
+        </p>
         {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
         {message && <p className="mb-2 text-sm text-green-600">{message}</p>}
         {canManage && (

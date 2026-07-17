@@ -3,6 +3,8 @@ import { theme } from "@/lib/theme";
 import { storefrontApi } from "@/lib/api";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { ChatWidget } from "@/components/ChatWidget";
+import { AttributionTracker } from "@/components/AttributionTracker";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -45,11 +47,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             `,
           }}
         />
+        <AttributionTracker />
         <div className="flex min-h-screen flex-col">
           <Header organizationName={organization?.name ?? "Store"} />
           <main className="flex-1">{children}</main>
           <Footer organizationName={organization?.name ?? "Store"} />
         </div>
+        {organization && <ChatWidget merchantSlug={organization.slug} organizationName={organization.name} />}
       </body>
     </html>
   );

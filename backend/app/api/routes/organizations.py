@@ -87,7 +87,8 @@ def update_organization(
     db: Session = Depends(get_db),
 ) -> Organization:
     organization = db.get(Organization, org_id)
-    organization.name = payload.name
+    for field_name, value in payload.model_dump(exclude_unset=True).items():
+        setattr(organization, field_name, value)
     db.commit()
     db.refresh(organization)
     return organization

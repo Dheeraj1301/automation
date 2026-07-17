@@ -51,9 +51,19 @@ class LeadCreateRequest(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     email: EmailStr
     phone: str | None = Field(default=None, max_length=50)
+    company: str | None = Field(default=None, max_length=255)
     country: str | None = Field(default=None, max_length=100)
     consent: bool
     landing_page_slug: str | None = None
+
+    # Traffic attribution - captured client-side (URL query params /
+    # document.referrer) so any channel is tracked uniformly: an Instagram
+    # DM link (via ManyChat or similar), a WhatsApp link, Google Ads, a QR
+    # code, or plain sharing.
+    utm_source: str | None = Field(default=None, max_length=100)
+    utm_medium: str | None = Field(default=None, max_length=100)
+    utm_campaign: str | None = Field(default=None, max_length=100)
+    referrer: str | None = Field(default=None, max_length=500)
 
 
 class LeadResponse(BaseModel):
@@ -61,9 +71,15 @@ class LeadResponse(BaseModel):
     name: str
     email: EmailStr
     phone: str | None
+    company: str | None
     country: str | None
     consent: bool
     source: str
+    utm_source: str | None
+    utm_medium: str | None
+    utm_campaign: str | None
+    qualification: str | None
+    buyer_type: str | None
     created_at: datetime
 
     model_config = {"from_attributes": True}

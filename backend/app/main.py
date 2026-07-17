@@ -18,6 +18,7 @@ from app.api.routes import (
     organizations,
     products,
     public,
+    public_ai,
 )
 from app.core.config import settings
 from app.core.logging import configure_logging, get_logger
@@ -60,6 +61,7 @@ app.include_router(leads.router, prefix="/api/organizations/{org_id}/leads", tag
 app.include_router(ai_config.router, prefix="/api/organizations/{org_id}/ai-config", tags=["ai-config"])
 app.include_router(ai_agent.router, prefix="/api/organizations/{org_id}/ai", tags=["ai-agent"])
 app.include_router(public.router, prefix="/api/public", tags=["public"])
+app.include_router(public_ai.router, prefix="/api/public", tags=["public-ai"])
 
 UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=UPLOAD_ROOT), name="uploads")

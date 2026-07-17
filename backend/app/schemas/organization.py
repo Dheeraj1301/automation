@@ -11,7 +11,8 @@ class OrganizationCreate(BaseModel):
 
 
 class OrganizationUpdate(BaseModel):
-    name: str = Field(min_length=1, max_length=255)
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    support_phone: str | None = Field(default=None, max_length=30)
 
 
 class OrganizationResponse(BaseModel):
@@ -20,6 +21,7 @@ class OrganizationResponse(BaseModel):
     slug: str
     plan: str
     logo_path: str | None
+    support_phone: str | None
 
     model_config = {"from_attributes": True}
 
@@ -32,6 +34,7 @@ class PublicOrganizationResponse(BaseModel):
     name: str
     slug: str
     logo_path: str | None
+    support_phone: str | None
 
     model_config = {"from_attributes": True}
 

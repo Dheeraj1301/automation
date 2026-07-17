@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { assetUrl, storefrontApi } from "@/lib/api";
 import { VariantPicker } from "@/components/VariantPicker";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 export const revalidate = 60;
 
@@ -20,7 +22,10 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function ProductDetailPage({ params }: { params: { slug: string } }) {
-  const product = await storefrontApi.getProduct(params.slug);
+  const [product, organization] = await Promise.all([
+    storefrontApi.getProduct(params.slug),
+    storefrontApi.getOrganization(),
+  ]);
   if (!product) notFound();
 
   const prices = product.variants.map((v) => Number(v.price));
@@ -80,6 +85,21 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
 
           <div className="mt-6">
             <VariantPicker variants={product.variants} />
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            {organization?.support_phone && (
+              <WhatsAppButton
+                phone={organization.support_phone}
+                message={`Hi, I'm interested in ${product.name}.`}
+              />
+            )}
+            <Link
+              href="/contact"
+              className="rounded-theme border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/10 dark:hover:bg-white/10"
+            >
+              Send an inquiry
+            </Link>
           </div>
         </div>
       </div>

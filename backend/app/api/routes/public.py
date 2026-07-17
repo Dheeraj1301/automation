@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.catalog import build_detail, build_list_item, clamp_page, clamp_page_size
+from app.core.lead_qualification import LeadQualificationInput
 from app.db.session import get_db
 from app.models.category import Category
 from app.models.landing_page import LandingPage
@@ -20,6 +21,7 @@ from app.models.product import ACTIVE, Product
 from app.schemas.marketing import LeadCreateRequest, LeadResponse, PublicLandingPageResponse
 from app.schemas.organization import PublicOrganizationResponse
 from app.schemas.product import CategoryResponse, PaginatedProducts, ProductDetailResponse
+from app.services.lead_qualifier import classify_lead
 from app.services.n8n_client import trigger_new_lead_workflows
 
 router = APIRouter()
@@ -115,15 +117,29 @@ def create_public_lead(org_slug: str, payload: LeadCreateRequest, db: Session = 
             .first()
         )
 
+    source = SOURCE_LANDING_PAGE if landing_page else SOURCE_STOREFRONT
+    qualification_result = classify_lead(
+        LeadQualificationInput(
+            company=payload.company, phone=payload.phone, country=payload.country, source=source
+        )
+    )
+
     lead = Lead(
         organization_id=organization.id,
         name=payload.name,
         email=payload.email,
         phone=payload.phone,
+        company=payload.company,
         country=payload.country,
         consent=payload.consent,
         landing_page_id=landing_page.id if landing_page else None,
-        source=SOURCE_LANDING_PAGE if landing_page else SOURCE_STOREFRONT,
+        source=source,
+        utm_source=payload.utm_source,
+        utm_medium=payload.utm_medium,
+        utm_campaign=payload.utm_campaign,
+        referrer=payload.referrer,
+        qualification=qualification_result.qualification,
+        buyer_type=qualification_result.buyer_type,
     )
     db.add(lead)
     db.commit()
@@ -136,8 +152,13 @@ def create_public_lead(org_slug: str, payload: LeadCreateRequest, db: Session = 
             "name": lead.name,
             "email": lead.email,
             "phone": lead.phone,
+            "company": lead.company,
             "country": lead.country,
             "source": lead.source,
+            "qualification": lead.qualification,
+            "buyer_type": lead.buyer_type,
+            "utm_source": lead.utm_source,
+            "utm_campaign": lead.utm_campaign,
         },
     )
 

@@ -8,6 +8,7 @@ export interface PublicOrganization {
   name: string;
   slug: string;
   logo_path: string | null;
+  support_phone: string | null;
 }
 
 export interface Category {

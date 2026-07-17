@@ -2,11 +2,13 @@
 
 import { FormEvent, useState } from "react";
 import { submitLead } from "@/lib/leads";
+import { getAttribution } from "@/lib/attribution";
 
 export function LeadCaptureForm({ landingPageSlug }: { landingPageSlug?: string }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [company, setCompany] = useState("");
   const [country, setCountry] = useState("");
   const [consent, setConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,13 +25,16 @@ export function LeadCaptureForm({ landingPageSlug }: { landingPageSlug?: string 
     }
 
     setIsSubmitting(true);
+    const attribution = getAttribution();
     const result = await submitLead({
       name,
       email,
       phone: phone || undefined,
+      company: company || undefined,
       country: country || undefined,
       consent,
       landing_page_slug: landingPageSlug,
+      ...attribution,
     });
     setIsSubmitting(false);
 
@@ -86,6 +91,14 @@ export function LeadCaptureForm({ landingPageSlug }: { landingPageSlug?: string 
             className="w-full rounded-theme border border-black/10 px-3 py-2 text-sm dark:border-white/10 dark:bg-transparent"
           />
         </div>
+      </div>
+      <div>
+        <label className="mb-1 block text-sm font-medium">Company (optional)</label>
+        <input
+          value={company}
+          onChange={(e) => setCompany(e.target.value)}
+          className="w-full rounded-theme border border-black/10 px-3 py-2 text-sm dark:border-white/10 dark:bg-transparent"
+        />
       </div>
       <label className="flex items-start gap-2 text-xs text-muted">
         <input

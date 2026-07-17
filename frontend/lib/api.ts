@@ -50,6 +50,7 @@ export interface Organization {
   slug: string;
   plan: string;
   logo_path: string | null;
+  support_phone: string | null;
 }
 
 export interface MyOrganization extends Organization {
@@ -223,7 +224,7 @@ export const api = {
   createOrganization: (data: { name: string }, token: string) =>
     request<Organization>("/api/organizations", { method: "POST", body: JSON.stringify(data) }, token),
 
-  updateOrganization: (orgId: string, data: { name: string }, token: string) =>
+  updateOrganization: (orgId: string, data: Partial<{ name: string; support_phone: string | null }>, token: string) =>
     request<Organization>(`/api/organizations/${orgId}`, { method: "PATCH", body: JSON.stringify(data) }, token),
 
   uploadLogo: (orgId: string, file: File, token: string) => {

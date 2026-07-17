@@ -13,6 +13,7 @@ class Organization(TimestampedBase):
     slug: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     plan: Mapped[str] = mapped_column(String(20), nullable=False, default=DEFAULT_PLAN)
     logo_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    support_phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
 
     memberships: Mapped[list["Membership"]] = relationship(back_populates="organization")
     settings: Mapped[list["Setting"]] = relationship(back_populates="organization")
