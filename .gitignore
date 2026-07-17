@@ -1,7 +1,14 @@
 # Secrets
 .env
 .env.local
+.env.production
 *.pem
+
+# Let's Encrypt certs/challenges (generated on the VPS, never checked in)
+certbot/
+
+# Local Postgres backups (see scripts/backup-postgres.sh)
+backups/
 
 # Node / Next.js
 frontend/node_modules/

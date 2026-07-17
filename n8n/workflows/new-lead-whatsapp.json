@@ -1,4 +1,5 @@
 {
+  "id": "newLeadWhatsappMock01",
   "name": "New Lead - WhatsApp Welcome (Mock)",
   "nodes": [
     {
@@ -17,7 +18,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.all()[0].json;\nconsole.log('New lead received (WhatsApp workflow):', JSON.stringify(body));\nreturn $input.all();"
+        "jsCode": "const body = $input.all()[0].json.body;\nconsole.log('New lead received (WhatsApp workflow):', JSON.stringify(body));\nreturn [{ json: body }];"
       },
       "id": "c3d4e5f6-0003-4a5b-8c6d-1a2b3c4d5e03",
       "name": "Log Lead",
@@ -27,7 +28,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.all()[0].json;\nconst lead = body.lead || {};\nconsole.log(`MOCK: would send WhatsApp welcome template to ${lead.phone || 'unknown phone'} (${lead.name || 'unknown name'})`);\nreturn [{ json: { mock: 'whatsapp_welcome_sent', organization_id: body.organization_id, lead } }];"
+        "jsCode": "const body = $input.all()[0].json;\nconst lead = body.lead || {};\nconsole.log(`MOCK: would send WhatsApp welcome template to ${lead.phone || 'unknown phone'} (${lead.name || 'unknown name'})`);\nreturn [{ json: { mock: 'whatsapp_welcome_sent', organization_id: body.organization_id || null, lead } }];"
       },
       "id": "d4e5f6a7-0004-4a5b-8c6d-1a2b3c4d5e04",
       "name": "Mock WhatsApp Send",

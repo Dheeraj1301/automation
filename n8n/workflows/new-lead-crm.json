@@ -1,4 +1,5 @@
 {
+  "id": "newLeadCrmSyncMock01",
   "name": "New Lead - CRM Sync (Mock)",
   "nodes": [
     {
@@ -17,7 +18,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.all()[0].json;\nconsole.log('New lead received (CRM workflow):', JSON.stringify(body));\nreturn $input.all();"
+        "jsCode": "const body = $input.all()[0].json.body;\nconsole.log('New lead received (CRM workflow):', JSON.stringify(body));\nreturn [{ json: body }];"
       },
       "id": "b8c9d0e1-0003-4b6c-9d7e-2b3c4d5e6f03",
       "name": "Log Lead",
@@ -27,7 +28,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.all()[0].json;\nconst lead = body.lead || {};\nconsole.log(`MOCK: would sync lead ${lead.name || 'unknown name'} <${lead.email || 'unknown email'}> to Zoho CRM`);\nreturn [{ json: { mock: 'crm_sync_completed', organization_id: body.organization_id, lead } }];"
+        "jsCode": "const body = $input.all()[0].json;\nconst lead = body.lead || {};\nconsole.log(`MOCK: would sync lead ${lead.name || 'unknown name'} <${lead.email || 'unknown email'}> to Zoho CRM`);\nreturn [{ json: { mock: 'crm_sync_completed', organization_id: body.organization_id || null, lead } }];"
       },
       "id": "c9d0e1f2-0004-4b6c-9d7e-2b3c4d5e6f04",
       "name": "Mock CRM Sync",

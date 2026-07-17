@@ -1,0 +1,6 @@
+# Shell scripts run inside Linux containers - a CRLF shebang line breaks
+# them silently ("no such file or directory" from a script that clearly
+# exists). Force LF regardless of the checkout platform or local
+# core.autocrlf setting.
+*.sh text eol=lf
+docker-entrypoint.sh text eol=lf
