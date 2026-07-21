@@ -261,6 +261,117 @@ export interface ConversationDetail {
   messages: ConversationMessage[];
 }
 
+export interface ProspectList {
+  id: string;
+  name: string;
+  product_name: string;
+  product_description: string;
+  product_category: string;
+  target_industry: string;
+  target_country: string;
+  target_state: string | null;
+  target_city: string | null;
+  target_company_size: string | null;
+  keywords: string | null;
+  revenue_range: string | null;
+  buyer_persona: string | null;
+  competitor_names: string | null;
+  preferred_language: string;
+  created_at: string;
+  prospect_count: number;
+}
+
+export interface ProspectListCreate {
+  name: string;
+  product_name: string;
+  product_description?: string;
+  product_category?: string;
+  target_industry?: string;
+  target_country?: string;
+  target_state?: string;
+  target_city?: string;
+  target_company_size?: string;
+  keywords?: string;
+  revenue_range?: string;
+  buyer_persona?: string;
+  competitor_names?: string;
+  preferred_language?: string;
+}
+
+export interface ProspectCreateInput {
+  company_name: string;
+  website_url?: string;
+  industry?: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  company_size?: string;
+  google_maps_url?: string;
+  linkedin_url?: string;
+}
+
+export interface AISummary {
+  what_they_sell: string;
+  customers: string;
+  pain_points: string;
+  company_type: string;
+  potential_interest: string;
+  buying_intent: string;
+  partnership_opportunities: string;
+}
+
+export interface Prospect {
+  id: string;
+  list_id: string;
+  company_name: string;
+  website_url: string | null;
+  industry: string | null;
+  country: string | null;
+  state: string | null;
+  city: string | null;
+  company_size: string | null;
+  google_maps_url: string | null;
+  linkedin_url: string | null;
+  contact_page_url: string | null;
+  about_page_url: string | null;
+  contact_form_url: string | null;
+  public_email: string | null;
+  public_phone: string | null;
+  sales_email: string | null;
+  support_email: string | null;
+  office_address: string | null;
+  crawled_data: { pages_crawled?: string[]; social_links?: Record<string, string> };
+  ai_summary: Partial<AISummary>;
+  lead_score: number | null;
+  lead_score_breakdown: Record<string, number>;
+  status: "new" | "enriching" | "enriched" | "failed";
+  error_message: string | null;
+  tags: string[];
+  follow_up_status: "not_contacted" | "contacted" | "replied" | "qualified" | "disqualified";
+  notes: string | null;
+  created_at: string;
+}
+
+export interface OutreachDraft {
+  id: string;
+  prospect_id: string;
+  channel: "email" | "linkedin" | "contact_form";
+  subject: string | null;
+  body: string;
+  status: "draft" | "edited" | "sent";
+  sent_at: string | null;
+  created_at: string;
+}
+
+export interface ProspectingDashboardStats {
+  total_prospects: number;
+  score_distribution: Record<string, number>;
+  industry_breakdown: Record<string, number>;
+  location_breakdown: Record<string, number>;
+  follow_up_status_counts: Record<string, number>;
+  outreach_status_counts: Record<string, number>;
+}
+
 export const api = {
   signup: (data: {
     email: string;
@@ -553,4 +664,108 @@ export const api = {
       { method: "POST", body: JSON.stringify({ code }) },
       token
     ),
+
+  createProspectList: (orgId: string, data: ProspectListCreate, token: string) =>
+    request<ProspectList>(`/api/organizations/${orgId}/prospecting/lists`, { method: "POST", body: JSON.stringify(data) }, token),
+
+  listProspectLists: (orgId: string, token: string) =>
+    request<ProspectList[]>(`/api/organizations/${orgId}/prospecting/lists`, {}, token),
+
+  deleteProspectList: (orgId: string, listId: string, token: string) =>
+    request<void>(`/api/organizations/${orgId}/prospecting/lists/${listId}`, { method: "DELETE" }, token),
+
+  addProspects: (orgId: string, listId: string, prospects: ProspectCreateInput[], token: string) =>
+    request<Prospect[]>(
+      `/api/organizations/${orgId}/prospecting/lists/${listId}/prospects`,
+      { method: "POST", body: JSON.stringify({ prospects }) },
+      token
+    ),
+
+  listProspects: (
+    orgId: string,
+    listId: string,
+    filters: {
+      industry?: string;
+      country?: string;
+      city?: string;
+      company_size?: string;
+      min_score?: number;
+      has_contact?: boolean;
+      follow_up_status?: string;
+    },
+    token: string
+  ) => {
+    const query = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== "") query.set(key, String(value));
+    });
+    return request<Prospect[]>(
+      `/api/organizations/${orgId}/prospecting/lists/${listId}/prospects?${query.toString()}`,
+      {},
+      token
+    );
+  },
+
+  getProspect: (orgId: string, prospectId: string, token: string) =>
+    request<Prospect>(`/api/organizations/${orgId}/prospecting/prospects/${prospectId}`, {}, token),
+
+  updateProspect: (
+    orgId: string,
+    prospectId: string,
+    data: Partial<{ tags: string[]; follow_up_status: string; notes: string }>,
+    token: string
+  ) =>
+    request<Prospect>(
+      `/api/organizations/${orgId}/prospecting/prospects/${prospectId}`,
+      { method: "PATCH", body: JSON.stringify(data) },
+      token
+    ),
+
+  reanalyzeProspect: (orgId: string, prospectId: string, token: string) =>
+    request<Prospect>(`/api/organizations/${orgId}/prospecting/prospects/${prospectId}/reanalyze`, { method: "POST" }, token),
+
+  generateOutreachDraft: (orgId: string, prospectId: string, channel: string, token: string) =>
+    request<OutreachDraft>(
+      `/api/organizations/${orgId}/prospecting/prospects/${prospectId}/outreach`,
+      { method: "POST", body: JSON.stringify({ channel }) },
+      token
+    ),
+
+  listOutreachDrafts: (orgId: string, prospectId: string, token: string) =>
+    request<OutreachDraft[]>(`/api/organizations/${orgId}/prospecting/prospects/${prospectId}/outreach`, {}, token),
+
+  updateOutreachDraft: (
+    orgId: string,
+    draftId: string,
+    data: Partial<{ subject: string; body: string; status: string }>,
+    token: string
+  ) =>
+    request<OutreachDraft>(
+      `/api/organizations/${orgId}/prospecting/outreach/${draftId}`,
+      { method: "PATCH", body: JSON.stringify(data) },
+      token
+    ),
+
+  markOutreachSent: (orgId: string, draftId: string, token: string) =>
+    request<OutreachDraft>(`/api/organizations/${orgId}/prospecting/outreach/${draftId}/mark-sent`, { method: "POST" }, token),
+
+  getProspectingDashboard: (orgId: string, token: string, listId?: string) => {
+    const query = listId ? `?list_id=${listId}` : "";
+    return request<ProspectingDashboardStats>(`/api/organizations/${orgId}/prospecting/dashboard${query}`, {}, token);
+  },
+
+  exportProspectsCsv: async (orgId: string, listId: string, listName: string, token: string) => {
+    const res = await fetch(`${API_URL}/api/organizations/${orgId}/prospecting/lists/${listId}/export`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new ApiError(res.status, "Could not export prospects");
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${listName.replace(/\s+/g, "_")}_prospects.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  },
 };

@@ -18,11 +18,13 @@ from app.api.routes import (
     leads,
     organizations,
     products,
+    prospecting,
     public,
     storefront_config,
 )
 from app.core.config import settings
 from app.core.logging import configure_logging, get_logger
+from app.services import enrichment_worker
 
 configure_logging()
 logger = get_logger(__name__)
@@ -34,7 +36,9 @@ UPLOAD_ROOT = Path("uploads")
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)
     logger.info("app_startup", env=settings.ENV)
+    await enrichment_worker.start_worker()
     yield
+    await enrichment_worker.stop_worker()
 
 
 app = FastAPI(title="ProfitPilot API", version="0.1.0", lifespan=lifespan)
@@ -70,6 +74,9 @@ app.include_router(
     integrations.router, prefix="/api/organizations/{org_id}/integrations", tags=["integrations"]
 )
 app.include_router(integrations.public_router, prefix="/api/integrations", tags=["integrations"])
+app.include_router(
+    prospecting.router, prefix="/api/organizations/{org_id}/prospecting", tags=["prospecting"]
+)
 app.include_router(public.router, prefix="/api/public", tags=["public"])
 
 UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)

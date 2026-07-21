@@ -12,6 +12,10 @@ from app.models.landing_page import LandingPage
 from app.models.lead import Lead
 from app.models.ai_conversation import AIConversation
 from app.models.ai_message import AIMessage
+from app.models.prospect_list import ProspectList
+from app.models.prospect import Prospect
+from app.models.outreach_draft import OutreachDraft
+from app.models.enrichment_job import EnrichmentJob
 
 __all__ = [
     "User",
@@ -28,4 +32,8 @@ __all__ = [
     "Lead",
     "AIConversation",
     "AIMessage",
+    "ProspectList",
+    "Prospect",
+    "OutreachDraft",
+    "EnrichmentJob",
 ]
