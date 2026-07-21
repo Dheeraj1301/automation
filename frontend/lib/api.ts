@@ -185,6 +185,51 @@ export interface AIConfig {
   return_policy: string;
 }
 
+export type ThemeId =
+  | "luxury"
+  | "modern_tech"
+  | "premium_fashion"
+  | "organic"
+  | "industrial"
+  | "interior"
+  | "colorful_retail";
+
+export interface StorefrontHeroConfig {
+  heading: string;
+  subheading: string;
+  cta_text: string;
+  cta_url: string;
+  image_path: string | null;
+}
+
+export interface StorefrontWhyChooseUsItem {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface StorefrontTestimonialItem {
+  name: string;
+  quote: string;
+  rating: number;
+  avatar_path: string | null;
+}
+
+export interface StorefrontFaqItem {
+  question: string;
+  answer: string;
+}
+
+export interface StorefrontConfig {
+  theme: ThemeId;
+  hero: StorefrontHeroConfig;
+  about_heading: string;
+  about_body: string;
+  why_choose_us: StorefrontWhyChooseUsItem[];
+  testimonials: StorefrontTestimonialItem[];
+  faqs: StorefrontFaqItem[];
+}
+
 export interface ZohoStatus {
   connected: boolean;
   connected_email: string | null;
@@ -456,6 +501,27 @@ export const api = {
 
   updateAIConfig: (orgId: string, data: AIConfig, token: string) =>
     request<AIConfig>(`/api/organizations/${orgId}/ai-config`, { method: "PUT", body: JSON.stringify(data) }, token),
+
+  getStorefrontConfig: (orgId: string, token: string) =>
+    request<StorefrontConfig>(`/api/organizations/${orgId}/storefront-config`, {}, token),
+
+  updateStorefrontConfig: (orgId: string, data: StorefrontConfig, token: string) =>
+    request<StorefrontConfig>(
+      `/api/organizations/${orgId}/storefront-config`,
+      { method: "PUT", body: JSON.stringify(data) },
+      token
+    ),
+
+  recommendTheme: (orgId: string, params: { industry?: string; description?: string }, token: string) => {
+    const query = new URLSearchParams();
+    if (params.industry) query.set("industry", params.industry);
+    if (params.description) query.set("description", params.description);
+    return request<{ theme: ThemeId }>(
+      `/api/organizations/${orgId}/storefront-config/recommend-theme?${query.toString()}`,
+      {},
+      token
+    );
+  },
 
   sendChatMessage: (
     orgId: string,

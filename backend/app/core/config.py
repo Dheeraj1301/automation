@@ -61,6 +61,9 @@ class Settings(BaseSettings):
 
     # Rate limiting (Redis-backed) for unauthenticated public endpoints.
     RATE_LIMIT_PUBLIC_LEADS_PER_MINUTE: int = 10
+    # Higher than leads since a real chat is several messages back-to-back,
+    # but still capped - each message is a real, billed Anthropic call.
+    RATE_LIMIT_PUBLIC_AI_CHAT_PER_MINUTE: int = 20
 
 
 settings = Settings()

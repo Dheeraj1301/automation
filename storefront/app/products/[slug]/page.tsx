@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { assetUrl, storefrontApi } from "@/lib/api";
 import { VariantPicker } from "@/components/VariantPicker";
 
@@ -44,13 +45,21 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
+    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
       {/* eslint-disable-next-line react/no-danger */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <div className="grid gap-8 md:grid-cols-2">
+      <nav className="mb-6 text-sm text-muted">
+        <Link href="/products" className="hover:text-primary">
+          Shop
+        </Link>
+        <span className="mx-2">/</span>
+        <span className="text-text">{product.name}</span>
+      </nav>
+
+      <div className="grid gap-10 md:grid-cols-2">
         <div>
-          <div className="aspect-square overflow-hidden rounded-theme bg-black/5 dark:bg-white/5">
+          <div className="aspect-square overflow-hidden rounded-theme-lg bg-surface-alt shadow-theme">
             {product.images[0] ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={assetUrl(product.images[0].file_path)} alt={product.name} className="h-full w-full object-cover" />
@@ -66,7 +75,7 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
                   key={img.id}
                   src={assetUrl(img.file_path)}
                   alt=""
-                  className="h-16 w-16 rounded-theme object-cover"
+                  className="h-16 w-16 rounded-theme border border-border object-cover"
                 />
               ))}
             </div>
@@ -74,12 +83,23 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
         </div>
 
         <div>
-          <h1 className="text-2xl font-semibold">{product.name}</h1>
-          {product.category_name && <p className="mt-1 text-sm text-muted">{product.category_name}</p>}
-          {product.description && <p className="mt-4 text-sm leading-relaxed">{product.description}</p>}
+          {product.category_name && (
+            <p className="text-xs font-semibold uppercase tracking-wide text-primary">{product.category_name}</p>
+          )}
+          <h1 className="mt-1.5 font-heading text-3xl font-semibold tracking-tight text-text">{product.name}</h1>
+          {product.description && <p className="mt-4 text-sm leading-relaxed text-muted">{product.description}</p>}
 
-          <div className="mt-6">
+          <div className="mt-6 border-t border-border pt-6">
             <VariantPicker variants={product.variants} />
+          </div>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/contact"
+              className="rounded-theme bg-primary px-6 py-3 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-hover"
+            >
+              Enquire about this product
+            </Link>
           </div>
         </div>
       </div>

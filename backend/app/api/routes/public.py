@@ -11,6 +11,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, R
 from sqlalchemy.orm import Session
 
 from app.core.catalog import build_detail, build_list_item, clamp_page, clamp_page_size
+from app.core.config import settings
 from app.core.rate_limit import enforce_rate_limit
 from app.db.session import get_db
 from app.models.category import Category
@@ -18,12 +19,18 @@ from app.models.landing_page import LandingPage
 from app.models.lead import SOURCE_LANDING_PAGE, SOURCE_STOREFRONT, Lead
 from app.models.organization import Organization
 from app.models.product import ACTIVE, Product
+from app.models.setting import Setting
+from app.schemas.ai_agent import ChatRequest, ChatResponse
 from app.schemas.marketing import LeadCreateRequest, LeadResponse, PublicLandingPageResponse
 from app.schemas.organization import PublicOrganizationResponse
 from app.schemas.product import CategoryResponse, PaginatedProducts, ProductDetailResponse
+from app.schemas.storefront_config import StorefrontConfigData
+from app.services.ai_chat import handle_chat_message
 from app.services.lead_automation import run_lead_automation
 
 router = APIRouter()
+
+STOREFRONT_CONFIG_KEY = "storefront_config"
 
 
 def get_org_by_slug_or_404(db: Session, org_slug: str) -> Organization:
@@ -33,9 +40,23 @@ def get_org_by_slug_or_404(db: Session, org_slug: str) -> Organization:
     return organization
 
 
+def get_storefront_config(db: Session, org_id: uuid.UUID) -> StorefrontConfigData:
+    setting = db.query(Setting).filter(Setting.organization_id == org_id, Setting.key == STOREFRONT_CONFIG_KEY).first()
+    if setting is None:
+        return StorefrontConfigData()
+    return StorefrontConfigData.model_validate(setting.value)
+
+
 @router.get("/{org_slug}", response_model=PublicOrganizationResponse)
-def get_public_organization(org_slug: str, db: Session = Depends(get_db)) -> Organization:
-    return get_org_by_slug_or_404(db, org_slug)
+def get_public_organization(org_slug: str, db: Session = Depends(get_db)) -> PublicOrganizationResponse:
+    organization = get_org_by_slug_or_404(db, org_slug)
+    return PublicOrganizationResponse(
+        name=organization.name,
+        slug=organization.slug,
+        logo_path=organization.logo_path,
+        whatsapp_number=organization.whatsapp_number if organization.whatsapp_verified else None,
+        storefront_config=get_storefront_config(db, organization.id),
+    )
 
 
 @router.get("/{org_slug}/categories", response_model=list[CategoryResponse])
@@ -152,3 +173,24 @@ def create_public_lead(
     )
 
     return lead
+
+
+@router.post("/{org_slug}/ai/chat", response_model=ChatResponse)
+def public_ai_chat(
+    org_slug: str,
+    payload: ChatRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> ChatResponse:
+    enforce_rate_limit(
+        f"public_ai_chat:{request.client.host if request.client else 'unknown'}",
+        limit=settings.RATE_LIMIT_PUBLIC_AI_CHAT_PER_MINUTE,
+    )
+
+    organization = get_org_by_slug_or_404(db, org_slug)
+
+    customer_identifier = payload.customer_identifier or (
+        f"anon:{request.client.host}" if request.client else "anon:unknown"
+    )
+
+    return handle_chat_message(db, organization, payload.conversation_id, payload.message, customer_identifier)

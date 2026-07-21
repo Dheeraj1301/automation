@@ -24,8 +24,8 @@ export function VariantPicker({ variants }: { variants: Variant[] }) {
               <button
                 key={s}
                 onClick={() => setSize(s)}
-                className={`rounded-theme border px-3 py-1.5 text-sm ${
-                  s === size ? "border-brand bg-brand text-white" : "border-black/10 dark:border-white/10"
+                className={`rounded-theme border px-3 py-1.5 text-sm transition-colors ${
+                  s === size ? "border-primary bg-primary text-on-primary" : "border-border text-text hover:border-primary"
                 }`}
               >
                 {s}
@@ -43,8 +43,8 @@ export function VariantPicker({ variants }: { variants: Variant[] }) {
               <button
                 key={c}
                 onClick={() => setColor(c)}
-                className={`rounded-theme border px-3 py-1.5 text-sm ${
-                  c === color ? "border-brand bg-brand text-white" : "border-black/10 dark:border-white/10"
+                className={`rounded-theme border px-3 py-1.5 text-sm transition-colors ${
+                  c === color ? "border-primary bg-primary text-on-primary" : "border-border text-text hover:border-primary"
                 }`}
               >
                 {c}
@@ -56,7 +56,7 @@ export function VariantPicker({ variants }: { variants: Variant[] }) {
 
       {selected && (
         <div className="mt-4">
-          <p className="text-2xl font-semibold">${selected.price}</p>
+          <p className="font-heading text-2xl font-semibold text-text">${selected.price}</p>
           <p className="text-sm text-muted">
             {selected.inventory_count > 0 ? `${selected.inventory_count} in stock` : "Out of stock"}
           </p>

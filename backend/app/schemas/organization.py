@@ -3,6 +3,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, EmailStr, Field
 
+from app.schemas.storefront_config import StorefrontConfigData
+
 INVITABLE_ROLES = ("admin", "staff")
 
 
@@ -34,6 +36,8 @@ class PublicOrganizationResponse(BaseModel):
     name: str
     slug: str
     logo_path: str | None
+    whatsapp_number: str | None
+    storefront_config: StorefrontConfigData
 
     model_config = {"from_attributes": True}
 

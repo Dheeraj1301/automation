@@ -4,10 +4,48 @@
 const API_URL = process.env.API_INTERNAL_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const MERCHANT_SLUG = process.env.MERCHANT_SLUG ?? "";
 
+export interface HeroConfig {
+  heading: string;
+  subheading: string;
+  cta_text: string;
+  cta_url: string;
+  image_path: string | null;
+}
+
+export interface WhyChooseUsItem {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface TestimonialItem {
+  name: string;
+  quote: string;
+  rating: number;
+  avatar_path: string | null;
+}
+
+export interface StorefrontFaqItem {
+  question: string;
+  answer: string;
+}
+
+export interface StorefrontConfig {
+  theme: string;
+  hero: HeroConfig;
+  about_heading: string;
+  about_body: string;
+  why_choose_us: WhyChooseUsItem[];
+  testimonials: TestimonialItem[];
+  faqs: StorefrontFaqItem[];
+}
+
 export interface PublicOrganization {
   name: string;
   slug: string;
   logo_path: string | null;
+  whatsapp_number: string | null;
+  storefront_config: StorefrontConfig;
 }
 
 export interface Category {
@@ -110,3 +148,38 @@ export const storefrontApi = {
 
   getLandingPage: (slug: string) => publicRequest<LandingPage>(`/landing-pages/${slug}`),
 };
+
+// --- Client-side (browser) calls only below this line ---
+// The AI chat widget runs in the browser, so unlike everything else in this
+// file it can't reach the internal Docker network - it has to go through
+// the public-facing API URL, same as product images (see assetUrl above).
+
+export interface ChatMessageResponse {
+  conversation_id: string;
+  message: string;
+}
+
+export async function sendChatMessage(
+  orgSlug: string,
+  message: string,
+  conversationId: string | null,
+  customerIdentifier: string
+): Promise<ChatMessageResponse> {
+  const publicApiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+  const res = await fetch(`${publicApiUrl}/api/public/${orgSlug}/ai/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message,
+      conversation_id: conversationId,
+      customer_identifier: customerIdentifier,
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail ?? "The chat assistant isn't available right now.");
+  }
+
+  return (await res.json()) as ChatMessageResponse;
+}

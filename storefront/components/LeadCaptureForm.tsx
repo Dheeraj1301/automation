@@ -42,67 +42,62 @@ export function LeadCaptureForm({ landingPageSlug }: { landingPageSlug?: string 
 
   if (submitted) {
     return (
-      <div className="rounded-theme border border-black/10 p-6 text-center dark:border-white/10">
-        <p className="font-medium">Thanks! We&apos;ll be in touch.</p>
+      <div className="rounded-theme-lg border border-border bg-surface p-8 text-center">
+        <p className="font-heading text-lg font-medium text-text">Thanks! We&apos;ll be in touch.</p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 rounded-theme border border-black/10 p-6 dark:border-white/10">
+    <form onSubmit={handleSubmit} className="space-y-4 rounded-theme-lg border border-border bg-surface p-6 shadow-theme">
       <div>
-        <label className="mb-1 block text-sm font-medium">Name</label>
+        <label className="mb-1.5 block text-sm font-medium text-text">Name</label>
         <input
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-theme border border-black/10 px-3 py-2 text-sm dark:border-white/10 dark:bg-transparent"
+          className="w-full rounded-theme border border-border bg-bg px-3 py-2.5 text-sm text-text outline-none focus:border-primary"
         />
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium">Email</label>
+        <label className="mb-1.5 block text-sm font-medium text-text">Email</label>
         <input
           required
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-theme border border-black/10 px-3 py-2 text-sm dark:border-white/10 dark:bg-transparent"
+          className="w-full rounded-theme border border-border bg-bg px-3 py-2.5 text-sm text-text outline-none focus:border-primary"
         />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="mb-1 block text-sm font-medium">Phone</label>
+          <label className="mb-1.5 block text-sm font-medium text-text">Phone</label>
           <input
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="w-full rounded-theme border border-black/10 px-3 py-2 text-sm dark:border-white/10 dark:bg-transparent"
+            className="w-full rounded-theme border border-border bg-bg px-3 py-2.5 text-sm text-text outline-none focus:border-primary"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Country</label>
+          <label className="mb-1.5 block text-sm font-medium text-text">Country</label>
           <input
             value={country}
             onChange={(e) => setCountry(e.target.value)}
-            className="w-full rounded-theme border border-black/10 px-3 py-2 text-sm dark:border-white/10 dark:bg-transparent"
+            className="w-full rounded-theme border border-border bg-bg px-3 py-2.5 text-sm text-text outline-none focus:border-primary"
           />
         </div>
       </div>
       <label className="flex items-start gap-2 text-xs text-muted">
-        <input
-          type="checkbox"
-          checked={consent}
-          onChange={(e) => setConsent(e.target.checked)}
-          className="mt-0.5"
-        />
+        <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5" />
         I agree to be contacted about my inquiry.
       </label>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-500">{error}</p>}
 
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-theme bg-brand py-2 text-sm font-medium text-white hover:bg-brand-dark disabled:opacity-50"
+        className="w-full rounded-theme bg-primary py-2.5 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-hover disabled:opacity-50"
       >
         {isSubmitting ? "Submitting..." : "Submit"}
       </button>

@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", exact: true },
   { label: "Products", href: "/dashboard/products", exact: false },
   { label: "Landing Pages", href: "/dashboard/landing-pages", exact: false },
+  { label: "Catalog Website", href: "/dashboard/storefront", exact: false },
   { label: "Leads", href: "/dashboard/leads", exact: false },
   { label: "AI Config", href: "/dashboard/ai-config", exact: false },
   { label: "AI Sales Agent", href: "/dashboard/ai-chat", exact: false },

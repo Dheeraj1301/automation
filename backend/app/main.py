@@ -19,6 +19,7 @@ from app.api.routes import (
     organizations,
     products,
     public,
+    storefront_config,
 )
 from app.core.config import settings
 from app.core.logging import configure_logging, get_logger
@@ -60,6 +61,11 @@ app.include_router(
 app.include_router(leads.router, prefix="/api/organizations/{org_id}/leads", tags=["leads"])
 app.include_router(ai_config.router, prefix="/api/organizations/{org_id}/ai-config", tags=["ai-config"])
 app.include_router(ai_agent.router, prefix="/api/organizations/{org_id}/ai", tags=["ai-agent"])
+app.include_router(
+    storefront_config.router,
+    prefix="/api/organizations/{org_id}/storefront-config",
+    tags=["storefront-config"],
+)
 app.include_router(
     integrations.router, prefix="/api/organizations/{org_id}/integrations", tags=["integrations"]
 )
